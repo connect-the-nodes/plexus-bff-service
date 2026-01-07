@@ -1,0 +1,23 @@
+openapi: 3.0.1
+info:
+  title: MCH BFF/Hub Service
+  version: v0
+paths:
+  /api/v1/session-info:
+    get:
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_arn}/invocations"
+        httpMethod: "POST"
+        type: "aws_proxy"
+      responses:
+        "200":
+          description: Success
+  /api/v1/hello:
+    get:
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_arn}/invocations"
+        httpMethod: "POST"
+        type: "aws_proxy"
+      responses:
+        "200":
+          description: Success

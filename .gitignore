@@ -1,0 +1,37 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+terraform/modules/hub-service/.terraform/providers/registry.terraform.io/hashicorp/aws/6.28.0/windows_amd64/terraform-provider-aws_v6.28.0_x5.exe
+terraform/modules/hub-service/.terraform/providers/registry.terraform.io/hashicorp/aws/6.28.0/windows_amd64/LICENSE.txt
+terraform/modules/hub-service/.terraform.lock.hcl
+test
