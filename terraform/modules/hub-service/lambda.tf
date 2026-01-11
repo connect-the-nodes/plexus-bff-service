@@ -11,6 +11,7 @@ resource "aws_lambda_function" "hub_service" {
   environment {
     variables = {
       MAIN_CLASS             = "com.zynchub.digital.hubservice.ZynchubApplication"
+      APP_VERSION = var.app_version
       DEPLOY_VERSION = var.app_version
       SPRING_PROFILES_ACTIVE = var.environment
     }

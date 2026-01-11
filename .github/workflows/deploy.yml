@@ -72,7 +72,7 @@ jobs:
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           BUCKET_NAME="zynchub-artifacts-${ACCOUNT_ID}-${{ inputs.environment }}"
-          aws s3 cp target/zynchub-${{ env.POM_VERSION }}.jar s3://${BUCKET_NAME}/hub-service/app.jar
+          aws s3 cp target/zynchub-${{ env.POM_VERSION }}-aws.jar s3://${BUCKET_NAME}/hub-service/app.jar
 
       # STEP 3: Complete the deployment (Lambda + API Gateway)
       - name: Terraform Apply (Full)
