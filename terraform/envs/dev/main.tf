@@ -12,7 +12,7 @@ module "hub_service" {
   aws_region   = var.aws_region
   app_version  = var.app_version
   service_name = local.lambda_name
-
+  jar_path     = var.jar_path
   # Pass rendered spec into the module
   openapi_spec = templatefile("${path.root}/../../../src/main/resources/static/openapi.yaml", {
     lambda_arn = local.lambda_arn
