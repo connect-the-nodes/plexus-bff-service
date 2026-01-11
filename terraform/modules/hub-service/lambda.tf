@@ -1,13 +1,13 @@
 resource "aws_lambda_function" "hub_service" {
-  filename      = var.jar_path
-  function_name = "zynchub-hub-service-${var.environment}"
+  function_name = var.service_name
   role          = aws_iam_role.lambda_exec.arn
   handler       = "com.zynchub.digital.hubservice.ZynchubApplication::handleRequest"
   runtime       = "java21"
 
-  # Enterprise best practice: Tag the resource with the version
-  description   = "Deployed version: ${var.app_version}"
-
+  # Use the variables here
+  s3_bucket = var.artifact_bucket
+  s3_key    = var.artifact_key
+  publish   = true
   tags = {
     Version     = var.app_version
     Environment = var.environment

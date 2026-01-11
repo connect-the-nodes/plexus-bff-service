@@ -50,3 +50,13 @@ variable "service_name" {
 }
 
 variable "openapi_spec" { type = string }
+variable "artifact_bucket" {
+  type        = string
+  description = "The name of the S3 bucket containing the JAR"
+}
+
+variable "artifact_key" {
+  type        = string
+  description = "The S3 key (path) to the JAR file"
+  default     = "hub-service/app.jar"
+}

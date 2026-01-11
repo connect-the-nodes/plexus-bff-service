@@ -21,10 +21,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      # Job-level variables (Terraform automatically picks up TF_VAR_ prefix)
       TF_VAR_environment: ${{ inputs.environment }}
       TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
-      JAR_NAME: "zynchub-digital-hub-service.jar"
 
     steps:
       - name: Checkout source
@@ -43,14 +41,9 @@ jobs:
       - name: Extract Maven Version
         id: prep
         run: |
-          # Extract version and remove whitespace
           VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout | xargs)
           echo "POM_VERSION=$VERSION" >> $GITHUB_ENV
           echo "TF_VAR_app_version=$VERSION" >> $GITHUB_ENV
-
-      - name: Copy JAR to Terraform folder
-        run: |
-          cp target/zynchub-${{ env.POM_VERSION }}.jar terraform/envs/${{ inputs.environment }}/${{ env.JAR_NAME }}
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -67,10 +60,20 @@ jobs:
         working-directory: terraform/envs/${{ inputs.environment }}
         run: terraform init
 
-      - name: Terraform Plan
+      # Step 1: Run Terraform Apply first to ensure the S3 Bucket exists
+      # We use -target if we want to be specific, but a full apply is fine.
+      - name: Terraform Apply (Create Infrastructure)
         working-directory: terraform/envs/${{ inputs.environment }}
-        run: terraform plan -input=false
+        run: terraform apply -auto-approve -input=false
 
-      - name: Terraform Apply
+      # Step 2: Now that the bucket exists, upload the JAR
+      - name: Upload JAR to S3
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          BUCKET_NAME="zynchub-artifacts-${ACCOUNT_ID}-${{ inputs.environment }}"
+          aws s3 cp target/zynchub-${{ env.POM_VERSION }}.jar s3://${BUCKET_NAME}/hub-service/app.jar
+
+      # Step 3: Run Apply again (Lambda will now see the new S3 object and update)
+      - name: Terraform Apply (Update Lambda Code)
         working-directory: terraform/envs/${{ inputs.environment }}
         run: terraform apply -auto-approve -input=false
