@@ -4,18 +4,23 @@ resource "aws_lambda_function" "hub_service" {
   handler       = "com.zynchub.digital.hubservice.ZynchubApplication::handleRequest"
   runtime       = "java21"
 
-  # Use the variables here
+  # Use S3 configuration
   s3_bucket = var.artifact_bucket
   s3_key    = var.artifact_key
-  publish   = true
-  tags = {
-    Version     = var.app_version
-    Environment = var.environment
-  }
 
-  source_code_hash = filebase64sha256(var.jar_path)
+
+  layers = []
+
+  publish   = true
   snap_start {
     apply_on = "PublishedVersions"
+  }
+
+  environment {
+    variables = {
+      APP_VERSION = var.app_version
+      SPRING_PROFILES_ACTIVE = var.environment
+    }
   }
 }
 
