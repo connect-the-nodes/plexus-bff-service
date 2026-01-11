@@ -2,10 +2,7 @@ resource "aws_api_gateway_rest_api" "hub_api" {
   name        = "zynchub-api-${var.environment}"
   description = "API Gateway for Zynchub Digital Hub Service"
 
-  body = templatefile("${path.module}/../../src/main/resources/static/openapi.yaml", {
-    lambda_arn = aws_lambda_function.hub_service.arn
-    region     = var.aws_region
-  })
+  body = var.openapi_spec
 
   endpoint_configuration {
     types = ["REGIONAL"]

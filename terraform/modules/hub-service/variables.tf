@@ -48,3 +48,5 @@ variable "service_name" {
   default     = "zynchub-service"
   description = "The name used for resource grouping and log groups"
 }
+
+variable "openapi_spec" { type = string }
