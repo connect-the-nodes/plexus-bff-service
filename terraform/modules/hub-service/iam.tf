@@ -40,3 +40,17 @@ resource "aws_iam_role_policy_attachment" "api_gw_cloudwatch" {
 resource "aws_api_gateway_account" "settings" {
   cloudwatch_role_arn = aws_iam_role.api_gw_cloudwatch.arn
 }
+
+resource "aws_iam_role_policy" "lambda_s3_access" {
+  name = "zynchub-lambda-s3-policy"
+  role = aws_iam_role.lambda_exec.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["s3:GetObject"]
+      Resource = ["arn:aws:s3:::${var.artifact_bucket}/${var.artifact_key}"]
+    }]
+  })
+}

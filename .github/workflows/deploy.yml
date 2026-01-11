@@ -21,6 +21,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
+      # These variables allow Terraform to map inputs to var.environment and var.aws_region automatically
       TF_VAR_environment: ${{ inputs.environment }}
       TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
 
@@ -28,11 +29,11 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Set up Java
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: 21
+          distribution: 'temurin'
+          java-version: '21'
           cache: 'maven'
 
       - name: Build application
@@ -60,20 +61,20 @@ jobs:
         working-directory: terraform/envs/${{ inputs.environment }}
         run: terraform init
 
-      # Step 1: Run Terraform Apply first to ensure the S3 Bucket exists
-      # We use -target if we want to be specific, but a full apply is fine.
-      - name: Terraform Apply (Create Infrastructure)
+      # STEP 1: Create the S3 Bucket first so it exists for the upload
+      # Note: 'aws_s3_bucket.lambda_artifacts' should match your resource name in main.tf
+      - name: Terraform Bootstrap (S3 Bucket)
         working-directory: terraform/envs/${{ inputs.environment }}
-        run: terraform apply -auto-approve -input=false
+        run: terraform apply -target=aws_s3_bucket.lambda_artifacts -auto-approve -input=false
 
-      # Step 2: Now that the bucket exists, upload the JAR
+      # STEP 2: Upload the JAR to the bucket
       - name: Upload JAR to S3
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           BUCKET_NAME="zynchub-artifacts-${ACCOUNT_ID}-${{ inputs.environment }}"
           aws s3 cp target/zynchub-${{ env.POM_VERSION }}.jar s3://${BUCKET_NAME}/hub-service/app.jar
 
-      # Step 3: Run Apply again (Lambda will now see the new S3 object and update)
-      - name: Terraform Apply (Update Lambda Code)
+      # STEP 3: Complete the deployment (Lambda + API Gateway)
+      - name: Terraform Apply (Full)
         working-directory: terraform/envs/${{ inputs.environment }}
         run: terraform apply -auto-approve -input=false

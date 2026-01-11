@@ -4,23 +4,20 @@ resource "aws_lambda_function" "hub_service" {
   handler       = "com.zynchub.digital.hubservice.ZynchubApplication::handleRequest"
   runtime       = "java21"
 
-  # Use S3 configuration
   s3_bucket = var.artifact_bucket
   s3_key    = var.artifact_key
 
-
-  layers = []
+  # This makes the Lambda "reactive" to code changes in S3
+  environment {
+    variables = {
+      DEPLOY_VERSION = var.app_version
+      SPRING_PROFILES_ACTIVE = var.environment
+    }
+  }
 
   publish   = true
   snap_start {
     apply_on = "PublishedVersions"
-  }
-
-  environment {
-    variables = {
-      APP_VERSION = var.app_version
-      SPRING_PROFILES_ACTIVE = var.environment
-    }
   }
 }
 
