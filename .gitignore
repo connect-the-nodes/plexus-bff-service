@@ -7,7 +7,7 @@ target/
 ### STS ###
 .apt_generated
 .classpath
-.factorypath
+.factorypath    
 .project
 .settings
 .springBeans
@@ -35,3 +35,5 @@ terraform/modules/hub-service/.terraform/providers/registry.terraform.io/hashico
 terraform/modules/hub-service/.terraform/providers/registry.terraform.io/hashicorp/aws/6.28.0/windows_amd64/LICENSE.txt
 terraform/modules/hub-service/.terraform.lock.hcl
 test
+/terraform/envs/dev/.terraform/
+terraform/envs/dev/.terraform.lock.hcl
