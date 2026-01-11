@@ -42,3 +42,9 @@ variable "app_version" {
   type        = string
   description = "The version of the application extracted from pom.xml"
 }
+
+variable "service_name" {
+  type        = string
+  default     = "zynchub-service"
+  description = "The name used for resource grouping and log groups"
+}
