@@ -20,3 +20,9 @@ variable "app_version" {
   type        = string
   description = "The version of the application extracted from pom.xml"
 }
+
+variable "tags" {
+  type        = map(string)
+  default     = {}
+  description = "Resource tags"
+}
