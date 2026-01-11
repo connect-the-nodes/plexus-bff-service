@@ -1,7 +1,7 @@
 resource "aws_lambda_function" "hub_service" {
   function_name = var.service_name
   role          = aws_iam_role.lambda_exec.arn
-  handler       = "com.zynchub.digital.hubservice.ZynchubApplication::handleRequest"
+  handler       = "org.springframework.cloud.function.adapter.aws.FunctionInvoker::handleRequest"
   runtime       = "java21"
 
   s3_bucket = var.artifact_bucket
@@ -10,6 +10,7 @@ resource "aws_lambda_function" "hub_service" {
   # This makes the Lambda "reactive" to code changes in S3
   environment {
     variables = {
+      MAIN_CLASS             = "com.zynchub.digital.hubservice.ZynchubApplication"
       DEPLOY_VERSION = var.app_version
       SPRING_PROFILES_ACTIVE = var.environment
     }
