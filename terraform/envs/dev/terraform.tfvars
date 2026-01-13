@@ -1,9 +1,16 @@
 environment = "dev"
 aws_region  = "eu-west-1"
-jar_path    = "./zynchub-digital-hub-service.jar"
+
+# This is injected dynamically by GitHub Actions
+# Example: 9a3f7c2b8a1e
+app_version = "local"
+
+# Example:
+# 410521973628.dkr.ecr.eu-west-1.amazonaws.com/zynchub-repo-dev
+ecr_repository_url = "REPLACED_BY_GITHUB_ACTIONS"
 
 tags = {
   Project     = "Zynchub"
-  Owner       = "Fiaz Zeeshan"
+  Owner       = "Platform"
   Environment = "dev"
 }

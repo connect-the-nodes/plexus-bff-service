@@ -1,62 +1,40 @@
 variable "environment" {
-  type        = string
-  description = "Deployment environment (dev, stage, prod)"
+  type = string
 }
 
 variable "aws_region" {
+  type = string
+}
+
+variable "service_name" {
+  type = string
+}
+
+variable "app_version" {
+  type = string
+}
+
+variable "ecr_repository_url" {
+  type = string
+}
+
+variable "openapi_spec_path" {
+  description = "Path to the OpenAPI YAML spec"
   type        = string
-  description = "AWS region for deployment"
 }
 
-variable "jar_path" {
+variable "nlb_dns" {
+  description = "DNS name of the Network Load Balancer"
   type        = string
-  description = "Path to the compiled Spring Boot JAR file"
 }
 
-variable "app_name" {
+variable "vpc_link_id" {
+  description = "API Gateway VPC Link ID"
   type        = string
-  default     = "zynchub"
-  description = "Application name prefix for resources"
-}
-
-variable "lambda_memory" {
-  type        = number
-  default     = 2048
-  description = "Memory allocated to the Lambda function"
-}
-
-variable "lambda_timeout" {
-  type        = number
-  default     = 30
-  description = "Lambda execution timeout in seconds"
 }
 
 variable "tags" {
   type        = map(string)
   default     = {}
   description = "Resource tags for cost tracking and management"
-}
-
-
-variable "app_version" {
-  type        = string
-  description = "The version of the application extracted from pom.xml"
-}
-
-variable "service_name" {
-  type        = string
-  default     = "zynchub-service"
-  description = "The name used for resource grouping and log groups"
-}
-
-variable "openapi_spec" { type = string }
-variable "artifact_bucket" {
-  type        = string
-  description = "The name of the S3 bucket containing the JAR"
-}
-
-variable "artifact_key" {
-  type        = string
-  description = "The S3 key (path) to the JAR file"
-  default     = "hub-service/app.jar"
 }

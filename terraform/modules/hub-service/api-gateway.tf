@@ -1,19 +1,48 @@
-resource "aws_api_gateway_rest_api" "hub_api" {
-  name        = "zynchub-api-${var.environment}"
-  description = "API Gateway for Zynchub Digital Hub Service"
+# Render the OpenAPI spec dynamically
+locals {
+  openapi_spec = templatefile(var.openapi_spec_path, {
+    nlb_dns     = aws_lb.nlb.dns_name         # internal NLB
+    vpc_link_id = aws_api_gateway_vpc_link.main.id  # internal VPC link
+  })
+}
 
-  body = var.openapi_spec
+
+############################################
+# API Gateway REST API (OpenAPI-driven)
+############################################
+resource "aws_api_gateway_rest_api" "hub_api" {
+  name = "zynchub-api-${var.environment}"
+  body = local.openapi_spec
 
   endpoint_configuration {
     types = ["REGIONAL"]
   }
 }
 
-resource "aws_api_gateway_deployment" "hub_deploy" {
+############################################
+# VPC Link (API Gateway → NLB)
+############################################
+resource "aws_api_gateway_vpc_link" "main" {
+  name        = "zynchub-vpc-link-${var.environment}"
+  target_arns = [aws_lb.nlb.arn]
+}
+
+############################################
+# CloudWatch Logs for API Gateway
+############################################
+resource "aws_cloudwatch_log_group" "api_gw" {
+  name              = "/aws/apigateway/zynchub-${var.environment}"
+  retention_in_days = 7
+}
+
+############################################
+# API Deployment (Redeploys on OpenAPI change)
+############################################
+resource "aws_api_gateway_deployment" "this" {
   rest_api_id = aws_api_gateway_rest_api.hub_api.id
 
   triggers = {
-    redeployment = sha1(aws_api_gateway_rest_api.hub_api.body)
+    redeploy = sha1(local.openapi_spec)
   }
 
   lifecycle {
@@ -21,9 +50,40 @@ resource "aws_api_gateway_deployment" "hub_deploy" {
   }
 }
 
-resource "aws_api_gateway_stage" "hub_stage" {
-  deployment_id = aws_api_gateway_deployment.hub_deploy.id
-  rest_api_id   = aws_api_gateway_rest_api.hub_api.id # Now using .id correctly
+############################################
+# API Stage
+############################################
+resource "aws_api_gateway_stage" "this" {
   stage_name    = var.environment
+  rest_api_id   = aws_api_gateway_rest_api.hub_api.id
+  deployment_id = aws_api_gateway_deployment.this.id
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_gw.arn
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      ip             = "$context.identity.sourceIp"
+      requestTime    = "$context.requestTime"
+      httpMethod     = "$context.httpMethod"
+      resourcePath   = "$context.resourcePath"
+      status         = "$context.status"
+      responseLength = "$context.responseLength"
+    })
+  }
 
+  xray_tracing_enabled = false
+}
+
+############################################
+# Enable Logs & Metrics for ALL Methods
+############################################
+resource "aws_api_gateway_method_settings" "all" {
+  rest_api_id = aws_api_gateway_rest_api.hub_api.id
+  stage_name  = aws_api_gateway_stage.this.stage_name
+  method_path = "*/*"
+
+  settings {
+    logging_level      = "INFO"
+    data_trace_enabled = false
+    metrics_enabled    = true
+  }
 }
