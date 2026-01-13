@@ -1,11 +1,10 @@
 # Render the OpenAPI spec dynamically
 locals {
   openapi_spec = templatefile(var.openapi_spec_path, {
-    nlb_dns     = aws_lb.nlb.dns_name         # internal NLB
-    vpc_link_id = aws_api_gateway_vpc_link.main.id  # internal VPC link
+    nlb_dns     = aws_lb.nlb.dns_name             # internal NLB
+    vpc_link_id = aws_api_gateway_vpc_link.main.id # internal VPC link
   })
 }
-
 
 ############################################
 # API Gateway REST API (OpenAPI-driven)
@@ -33,6 +32,7 @@ resource "aws_api_gateway_vpc_link" "main" {
 resource "aws_cloudwatch_log_group" "api_gw" {
   name              = "/aws/apigateway/zynchub-${var.environment}"
   retention_in_days = 7
+  tags              = var.tags
 }
 
 ############################################
