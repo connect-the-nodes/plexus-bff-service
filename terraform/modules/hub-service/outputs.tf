@@ -15,17 +15,12 @@ output "api_gw_cloudwatch_role_arn" {
   value = aws_iam_role.api_gw_cloudwatch.arn
 }
 
-
 output "vpc_id" {
   value = aws_vpc.main.id
 }
 
 output "public_subnets" {
   value = aws_subnet.public[*].id
-}
-
-output "private_subnets" {
-  value = aws_subnet.private[*].id
 }
 
 output "ecs_sg_id" {
@@ -52,4 +47,9 @@ output "nlb_dns_name" {
 output "vpc_link_id" {
   description = "API Gateway VPC Link ID"
   value       = aws_api_gateway_vpc_link.main.id
+}
+
+output "api_url" {
+  description = "Base URL for the API Gateway stage"
+  value       = "https://${aws_api_gateway_rest_api.hub_api.id}.execute-api.${var.aws_region}.amazonaws.com/${aws_api_gateway_stage.this.stage_name}"
 }

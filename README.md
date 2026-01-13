@@ -90,3 +90,43 @@ The hub service operates as part of a broader integration platform:
 - Authentication and authorization details are defined in the security documentation
 
 ---
+
+## GitHub Actions deployment permissions
+
+If the deploy workflow fails at the ECR login step with `ecr:GetAuthorizationToken`, the
+OIDC role used by GitHub Actions is missing required ECR permissions. Attach a policy
+similar to the following to the role referenced by `AWS_ROLE_ARN` (adjust `Resource`
+scopes as needed for your account):
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "EcrLogin",
+      "Effect": "Allow",
+      "Action": ["ecr:GetAuthorizationToken"],
+      "Resource": "*"
+    },
+    {
+      "Sid": "EcrPushPullRepo",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:BatchGetImage",
+        "ecr:CompleteLayerUpload",
+        "ecr:DescribeImages",
+        "ecr:DescribeRepositories",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:InitiateLayerUpload",
+        "ecr:PutImage",
+        "ecr:UploadLayerPart"
+      ],
+      "Resource": "arn:aws:ecr:<region>:<account-id>:repository/zynchub-repo-*"
+    }
+  ]
+}
+```
+
+The Terraform apply step will also require permissions for ECS, EC2, IAM, CloudWatch Logs,
+Auto Scaling, and API Gateway resources defined under `terraform/modules/hub-service`.
