@@ -1,0 +1,19 @@
+[
+  {
+    "name": "DVLA Lookup",
+    "logo": "reactLogo",
+    "coreServices": [
+      "Vehicle Registration Info",
+      "MOT History",
+      "Tax Status",
+    ],
+    "apiDocLink": "https://example.com/dvla/swagger",
+    "authPattern": "API Key in Header",
+    "sla": "99% uptime, responses within 250ms",
+    "rateLimit": "500 requests/min",
+    "status": "Active",
+    "lastUpdated": "2025-09-28",
+    "description":
+    "Official DVLA API providing vehicle details and MOT history."
+  }
+]
