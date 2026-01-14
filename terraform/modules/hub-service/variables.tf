@@ -23,6 +23,16 @@ variable "openapi_spec_path" {
   type        = string
 }
 
+variable "nlb_dns" {
+  description = "DNS name of the Network Load Balancer"
+  type        = string
+}
+
+variable "vpc_link_id" {
+  description = "API Gateway VPC Link ID"
+  type        = string
+}
+
 variable "tags" {
   type        = map(string)
   default     = {}
