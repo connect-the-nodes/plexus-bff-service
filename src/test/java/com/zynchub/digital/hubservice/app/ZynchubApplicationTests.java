@@ -1,4 +1,4 @@
-package com.zynchub.digital.hubservice.zynchub;
+package com.zynchub.digital.hubservice.app;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
