@@ -19,3 +19,8 @@ logging:
   level:
     org.springdoc: TRACE
     org.springframework.web: DEBUG
+features:
+  file: features.yml
+  remote:
+    enabled: false
+    url: ""

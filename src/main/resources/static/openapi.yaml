@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: MCH BFF / Hub Service
+  title: Zynchub Hub Service
   version: v0
 
 paths:
