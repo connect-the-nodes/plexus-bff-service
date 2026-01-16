@@ -38,4 +38,5 @@ jobs:
         working-directory: terraform/envs/${{ inputs.environment }}
         run: |
           terraform init
+          terraform apply -auto-approve -input=false -target=module.hub_service.aws_ecr_repository.main
           terraform destroy -auto-approve -input=false
