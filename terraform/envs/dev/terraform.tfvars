@@ -15,5 +15,5 @@ tags = {
   Environment = "dev"
 }
 
-create_apigw_log_group = false
-create_apigw_cloudwatch_role = false
+create_apigw_log_group = true
+create_apigw_cloudwatch_role = true
