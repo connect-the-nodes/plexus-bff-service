@@ -1,0 +1,17 @@
+features:
+  - name: TEST_PARENT
+    description: Test parent flag
+    enabled: true
+    parent: TEST_PARENT
+  - name: TEST_CHILD
+    description: Test child flag
+    enabled: true
+    parent: TEST_PARENT
+  - name: TEST_ENABLED
+    description: Test enabled feature
+    enabled: true
+    parent: TEST_ENABLED
+  - name: TEST_DISABLED
+    description: Test disabled feature
+    enabled: false
+    parent: TEST_DISABLED

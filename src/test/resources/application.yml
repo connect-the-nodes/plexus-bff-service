@@ -1,0 +1,10 @@
+spring:
+  data:
+    redis:
+      fail-fast: false
+  session:
+    store-type: none
+management:
+  health:
+    redis:
+      enabled: false
