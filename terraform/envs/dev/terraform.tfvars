@@ -11,6 +11,9 @@ ecr_repository_url = "REPLACED_BY_GITHUB_ACTIONS"
 
 tags = {
   Project     = "Zynchub"
-  Owner       = "Platform"
+  Owner       = "Fiaz Zeeshan Zackariya"
   Environment = "dev"
 }
+
+create_apigw_log_group = false
+create_apigw_cloudwatch_role = false

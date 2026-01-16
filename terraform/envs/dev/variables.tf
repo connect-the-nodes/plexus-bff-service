@@ -23,4 +23,14 @@ variable "tags" {
   type        = map(string)
 }
 
+variable "create_apigw_log_group" {
+  description = "Whether to create the API Gateway log group"
+  type        = bool
+}
+
+variable "create_apigw_cloudwatch_role" {
+  description = "Whether to create the API Gateway CloudWatch role"
+  type        = bool
+}
+
 

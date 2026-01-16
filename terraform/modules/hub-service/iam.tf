@@ -1,5 +1,5 @@
 ####################################
-# 1️⃣ ECS TASK EXECUTION ROLE
+# ECS TASK EXECUTION ROLE
 ####################################
 resource "aws_iam_role" "ecs_task_execution" {
   name = "zynchub-ecs-task-execution-${var.environment}"
@@ -20,7 +20,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
 }
 
 ####################################
-# 2️⃣ ECS TASK ROLE
+# ECS TASK ROLE
 ####################################
 resource "aws_iam_role" "ecs_task_role" {
   name = "zynchub-ecs-task-role-${var.environment}"
@@ -36,7 +36,7 @@ resource "aws_iam_role" "ecs_task_role" {
 }
 
 ####################################
-# 3️⃣ ECS EC2 INSTANCE ROLE
+# ECS EC2 INSTANCE ROLE
 ####################################
 resource "aws_iam_role" "ecs_instance_role" {
   name = "zynchub-ecs-ec2-role-${var.environment}"
@@ -62,10 +62,11 @@ resource "aws_iam_instance_profile" "ecs_instance_profile" {
 }
 
 ####################################
-# 4️⃣ API GATEWAY → CLOUDWATCH LOGS
+# API GATEWAY CLOUDWATCH LOGS
 ####################################
 resource "aws_iam_role" "api_gw_cloudwatch" {
-  name = "zynchub-apigw-logs-${var.environment}"
+  count = var.create_apigw_cloudwatch_role ? 1 : 0
+  name  = local.apigw_role_name
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -77,11 +78,21 @@ resource "aws_iam_role" "api_gw_cloudwatch" {
   })
 }
 
+data "aws_iam_role" "api_gw_cloudwatch" {
+  count = var.create_apigw_cloudwatch_role ? 0 : 1
+  name  = local.apigw_role_name
+}
+
 resource "aws_iam_role_policy_attachment" "api_gw_logs_policy" {
-  role       = aws_iam_role.api_gw_cloudwatch.name
+  count      = var.create_apigw_cloudwatch_role ? 1 : 0
+  role       = aws_iam_role.api_gw_cloudwatch[0].name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
 }
 
+locals {
+  apigw_role_arn = var.create_apigw_cloudwatch_role ? aws_iam_role.api_gw_cloudwatch[0].arn : data.aws_iam_role.api_gw_cloudwatch[0].arn
+}
+
 resource "aws_api_gateway_account" "this" {
-  cloudwatch_role_arn = aws_iam_role.api_gw_cloudwatch.arn
+  cloudwatch_role_arn = local.apigw_role_arn
 }

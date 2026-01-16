@@ -29,7 +29,6 @@ resource "aws_ecs_task_definition" "app" {
   cpu    = "512"
   memory = "800"
 
-  # Correct IAM role references (from iam.tf)
   task_role_arn      = aws_iam_role.ecs_task_role.arn
   execution_role_arn = aws_iam_role.ecs_task_execution.arn
 
@@ -64,20 +63,24 @@ resource "aws_ecs_task_definition" "app" {
 }
 
 ############################################
-# Launch Configuration (EC2 capacity for ECS)
+# Launch Template (EC2 capacity for ECS)
 ############################################
-resource "aws_launch_configuration" "ecs" {
-  name_prefix          = "zynchub-ecs-${var.environment}-"
-  image_id             = data.aws_ami.ecs_optimized.id
-  instance_type        = "t3.micro"
-  iam_instance_profile = aws_iam_instance_profile.ecs_instance_profile.name
-  security_groups      = [aws_security_group.ecs_tasks.id]
+resource "aws_launch_template" "ecs" {
+  name_prefix   = "zynchub-ecs-${var.environment}-"
+  image_id      = data.aws_ami.ecs_optimized.id
+  instance_type = "t3.micro"
 
-  # Join ECS cluster
-  user_data = <<EOF
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ecs_instance_profile.name
+  }
+
+  vpc_security_group_ids = [aws_security_group.ecs_tasks.id]
+
+  user_data = base64encode(<<EOF
 #!/bin/bash
 echo ECS_CLUSTER=${aws_ecs_cluster.main.name} >> /etc/ecs/ecs.config
 EOF
+  )
 
   lifecycle {
     create_before_destroy = true
@@ -88,12 +91,16 @@ EOF
 # Auto Scaling Group (REQUIRED for EC2 ECS)
 ############################################
 resource "aws_autoscaling_group" "ecs" {
-  name                 = "zynchub-asg-${var.environment}"
-  launch_configuration = aws_launch_configuration.ecs.name
+  name = "zynchub-asg-${var.environment}"
 
   min_size         = 1
   max_size         = 1
   desired_capacity = 1
+
+  launch_template {
+    id      = aws_launch_template.ecs.id
+    version = "$Latest"
+  }
 
   # Free-tier friendly: put instances in PUBLIC subnets so no NAT needed
   vpc_zone_identifier = aws_subnet.public[*].id
@@ -106,7 +113,6 @@ resource "aws_autoscaling_group" "ecs" {
     propagate_at_launch = true
   }
 
-  # Helpful for identifying ECS instances
   tag {
     key                 = "Environment"
     value               = var.environment
@@ -130,7 +136,6 @@ resource "aws_ecs_service" "main" {
   desired_count   = 1
   launch_type     = "EC2"
 
-  # With awsvpc, tasks need subnets + SG. Using PUBLIC subnets to avoid NAT costs.
   network_configuration {
     subnets          = aws_subnet.public[*].id
     security_groups  = [aws_security_group.ecs_tasks.id]
@@ -143,7 +148,6 @@ resource "aws_ecs_service" "main" {
     container_port   = 8080
   }
 
-  # Ensure capacity exists before service tries to place tasks
   depends_on = [
     aws_autoscaling_group.ecs,
     aws_lb_listener.app

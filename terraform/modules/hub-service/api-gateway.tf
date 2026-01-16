@@ -6,7 +6,6 @@ locals {
   })
 }
 
-
 ############################################
 # API Gateway REST API (OpenAPI-driven)
 ############################################
@@ -20,20 +19,11 @@ resource "aws_api_gateway_rest_api" "hub_api" {
 }
 
 ############################################
-# VPC Link (API Gateway → NLB)
+# VPC Link (API Gateway -> NLB)
 ############################################
 resource "aws_api_gateway_vpc_link" "main" {
   name        = "zynchub-vpc-link-${var.environment}"
   target_arns = [aws_lb.nlb.arn]
-}
-
-############################################
-# CloudWatch Logs for API Gateway
-############################################
-resource "aws_cloudwatch_log_group" "api_gw" {
-  name              = "/aws/apigateway/zynchub-${var.environment}"
-  retention_in_days = 7
-  tags              = var.tags
 }
 
 ############################################
@@ -58,8 +48,9 @@ resource "aws_api_gateway_stage" "this" {
   stage_name    = var.environment
   rest_api_id   = aws_api_gateway_rest_api.hub_api.id
   deployment_id = aws_api_gateway_deployment.this.id
+
   access_log_settings {
-    destination_arn = aws_cloudwatch_log_group.api_gw.arn
+    destination_arn = local.apigw_log_group_arn
     format = jsonencode({
       requestId      = "$context.requestId"
       ip             = "$context.identity.sourceIp"
@@ -72,6 +63,10 @@ resource "aws_api_gateway_stage" "this" {
   }
 
   xray_tracing_enabled = false
+
+  depends_on = [
+    aws_api_gateway_account.this
+  ]
 }
 
 ############################################

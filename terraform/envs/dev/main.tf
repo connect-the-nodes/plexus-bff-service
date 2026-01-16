@@ -21,4 +21,7 @@ module "hub_service" {
 
   # Tags
   tags = var.tags
+
+  create_apigw_log_group       = var.create_apigw_log_group
+  create_apigw_cloudwatch_role = var.create_apigw_cloudwatch_role
 }

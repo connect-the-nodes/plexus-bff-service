@@ -2,37 +2,31 @@
 # LOG GROUPS
 ######################################
 
-# 1️⃣ ECS Log Group
+locals {
+  apigw_log_group_name = "/aws/apigateway/zynchub-${var.environment}"
+  apigw_role_name      = "zynchub-apigw-logs-${var.environment}"
+}
+
+# ECS Log Group
 resource "aws_cloudwatch_log_group" "ecs" {
   name              = "/ecs/zynchub-${var.environment}"
   retention_in_days = 14
   tags              = var.tags
 }
 
-# 2️⃣ API Gateway Log Group
+# API Gateway Log Group
 resource "aws_cloudwatch_log_group" "apigw" {
-  name              = "/aws/apigateway/zynchub-${var.environment}"
+  count             = var.create_apigw_log_group ? 1 : 0
+  name              = local.apigw_log_group_name
   retention_in_days = 14
   tags              = var.tags
 }
 
-######################################
-# API Gateway → CloudWatch Logs Role
-######################################
-resource "aws_iam_role" "apigw_cloudwatch_role" {
-  name = "zynchub-apigw-logs-${var.environment}"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect    = "Allow"
-      Principal = { Service = "apigateway.amazonaws.com" }
-      Action    = "sts:AssumeRole"
-    }]
-  })
+data "aws_cloudwatch_log_group" "apigw" {
+  count = var.create_apigw_log_group ? 0 : 1
+  name  = local.apigw_log_group_name
 }
 
-resource "aws_iam_role_policy_attachment" "apigw_cloudwatch_attach" {
-  role       = aws_iam_role.apigw_cloudwatch_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+locals {
+  apigw_log_group_arn = var.create_apigw_log_group ? aws_cloudwatch_log_group.apigw[0].arn : data.aws_cloudwatch_log_group.apigw[0].arn
 }

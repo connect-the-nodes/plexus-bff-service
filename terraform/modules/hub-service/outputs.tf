@@ -12,7 +12,7 @@ output "ecs_instance_profile" {
 }
 
 output "api_gw_cloudwatch_role_arn" {
-  value = aws_iam_role.api_gw_cloudwatch.arn
+  value = local.apigw_role_arn
 }
 
 
