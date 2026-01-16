@@ -1,0 +1,58 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: zynchub
+  profiles:
+    active: local
+  security:
+    user:
+      name: admin
+      password: admin
+      roles: ADMIN
+  session:
+    store-type: none
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.session.SessionAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+  retry:
+    maxAttempts: 3
+    delay: 1000
+    maxDelay: 4000
+    random: true
+
+management:
+  health:
+    redis:
+      enabled: false
+
+security:
+  enabled: true
+  jwt:
+    jwk-set-uri: ${SECURITY_JWT_JWK_SET_URI:}
+    issuer-uri: ${SECURITY_JWT_ISSUER_URI:}
+
+springdoc:
+  api-docs:
+    enabled: true
+  show-actuator: true
+  swagger-ui:
+    enabled: true
+    disable-swagger-default-url: true
+    path: /swagger-ui.html
+    url: /v3/api-docs
+    config-url: /v3/api-docs/swagger-config
+
+logging:
+  level:
+    org.springdoc: INFO
+    org.springframework.web: INFO
+
+features:
+  file: features.yml
+  remote:
+    enabled: false
+    url: ""
+
+property-logger:
+  enabled: false

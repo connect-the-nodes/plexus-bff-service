@@ -1,0 +1,20 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+security:
+  enabled: false
+
+logging:
+  level:
+    org.springdoc: DEBUG
+    org.springframework.web: DEBUG
+    com.zynchub.digital: DEBUG
+
+features:
+  remote:
+    enabled: false
+
+property-logger:
+  enabled: true

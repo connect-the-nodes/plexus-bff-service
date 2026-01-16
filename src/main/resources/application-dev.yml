@@ -1,0 +1,14 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+security:
+  enabled: true
+  jwt:
+    issuer-uri: ${SECURITY_JWT_ISSUER_URI}
+
+features:
+  remote:
+    enabled: true
+    url: ${FEATURES_REMOTE_URL}
