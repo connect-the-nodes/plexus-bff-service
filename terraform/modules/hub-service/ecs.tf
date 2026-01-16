@@ -26,8 +26,8 @@ resource "aws_ecs_task_definition" "app" {
   requires_compatibilities = ["EC2"]
   network_mode             = "awsvpc"
 
-  cpu    = "512"
-  memory = "800"
+  cpu    = "256"
+  memory = "512"
 
   task_role_arn      = aws_iam_role.ecs_task_role.arn
   execution_role_arn = aws_iam_role.ecs_task_execution.arn
