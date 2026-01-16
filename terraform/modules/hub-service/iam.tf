@@ -61,6 +61,29 @@ resource "aws_iam_instance_profile" "ecs_instance_profile" {
   role = aws_iam_role.ecs_instance_role.name
 }
 
+resource "aws_iam_policy" "appconfig_features_read" {
+  name        = "zynchub-appconfig-features-${var.environment}"
+  description = "Read feature flags from AWS AppConfig"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "appconfigdata:StartConfigurationSession",
+          "appconfigdata:GetLatestConfiguration"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "appconfig_features_read" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = aws_iam_policy.appconfig_features_read.arn
+}
+
 ####################################
 # API GATEWAY CLOUDWATCH LOGS
 ####################################

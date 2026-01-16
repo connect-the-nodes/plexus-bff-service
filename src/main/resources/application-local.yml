@@ -13,8 +13,12 @@ logging:
     com.zynchub.digital: DEBUG
 
 features:
-  remote:
-    enabled: false
+  file: features.yml
+
+aws:
+  app-config:
+    features:
+      enabled: false
 
 property-logger:
   enabled: true

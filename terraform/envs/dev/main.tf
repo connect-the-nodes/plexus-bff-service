@@ -18,6 +18,7 @@ module "hub_service" {
 
   # OpenAPI spec path (module renders it)
   openapi_spec_path = "${path.root}/../../../src/main/resources/static/openapi.yaml"
+  features_config_path = "${path.root}/../../../src/main/resources/features.yml"
 
   # Tags
   tags = var.tags

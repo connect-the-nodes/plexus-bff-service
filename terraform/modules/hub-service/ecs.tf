@@ -48,6 +48,9 @@ resource "aws_ecs_task_definition" "app" {
 
       environment = [
         { name = "SPRING_PROFILES_ACTIVE", value = var.environment }
+        , { name = "AWS_APP_CONFIG_FEATURES_APPLICATION_ID", value = aws_appconfig_application.features.id }
+        , { name = "AWS_APP_CONFIG_FEATURES_ENVIRONMENT_ID", value = aws_appconfig_environment.features.environment_id }
+        , { name = "AWS_APP_CONFIG_FEATURES_CONFIGURATION_ID", value = aws_appconfig_configuration_profile.features.id }
       ]
 
       logConfiguration = {

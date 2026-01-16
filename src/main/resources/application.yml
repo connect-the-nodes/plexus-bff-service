@@ -50,9 +50,14 @@ logging:
 
 features:
   file: features.yml
-  remote:
-    enabled: false
-    url: ""
+
+aws:
+  app-config:
+    features:
+      enabled: true
+      application-id: ${AWS_APP_CONFIG_FEATURES_APPLICATION_ID:}
+      environment-id: ${AWS_APP_CONFIG_FEATURES_ENVIRONMENT_ID:}
+      configuration-id: ${AWS_APP_CONFIG_FEATURES_CONFIGURATION_ID:}
 
 property-logger:
   enabled: false

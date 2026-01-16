@@ -2,39 +2,36 @@ package com.zynchub.digital.hubservice.app.config;
 
 import com.zynchub.digital.hubservice.app.mapper.FeatureMapper;
 import com.zynchub.digital.hubservice.app.service.FeaturesRetriever;
+import com.zynchub.digital.hubservice.app.service.impl.AppConfigFeaturesRetrieverImpl;
 import com.zynchub.digital.hubservice.app.service.impl.PropertyFeaturesRetrieverImpl;
-import com.zynchub.digital.hubservice.app.service.impl.RemoteFeaturesRetrieverImpl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestClient;
+import org.springframework.core.env.Environment;
 
 @Configuration
 @RequiredArgsConstructor
 public class FeaturesConfiguration {
 
-    private final FeatureMapper featureMapper;
+  private final Environment environment;
+  private final FeatureMapper featureMapper;
 
-    @Bean
-    @ConditionalOnProperty(
-            value = "features.remote.enabled",
-            havingValue = "true",
-            matchIfMissing = false)
-    public FeaturesRetriever remoteFeaturesRetriever(
-            RestClient.Builder restClientBuilder,
-            @Value("${features.remote.url}") String featuresUrl) {
-        return new RemoteFeaturesRetrieverImpl(restClientBuilder.build(), featuresUrl, featureMapper);
-    }
+  @Bean
+  @ConditionalOnProperty(
+      value = "aws.app-config.features.enabled",
+      havingValue = "true",
+      matchIfMissing = true)
+  public FeaturesRetriever appConfigFeaturesRetriever() {
+    return new AppConfigFeaturesRetrieverImpl(environment, featureMapper);
+  }
 
-    @Bean
-    @ConditionalOnProperty(
-            value = "features.remote.enabled",
-            havingValue = "false",
-            matchIfMissing = true)
-    public FeaturesRetriever propertyFeaturesRetriever(
-            @Value("${features.file:features.yml}") String featureFileName) {
-        return new PropertyFeaturesRetrieverImpl(featureFileName, featureMapper);
-    }
+  @Bean
+  @ConditionalOnProperty(
+      value = "aws.app-config.features.enabled",
+      havingValue = "false",
+      matchIfMissing = false)
+  public FeaturesRetriever propertyFeaturesRetriever() {
+    return new PropertyFeaturesRetrieverImpl("features.yml", featureMapper);
+  }
 }

@@ -23,6 +23,11 @@ variable "openapi_spec_path" {
   type        = string
 }
 
+variable "features_config_path" {
+  description = "Path to the features YAML for AWS AppConfig"
+  type        = string
+}
+
 variable "tags" {
   type        = map(string)
   default     = {}

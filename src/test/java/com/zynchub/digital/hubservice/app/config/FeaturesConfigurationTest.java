@@ -4,40 +4,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.zynchub.digital.hubservice.app.mapper.FeatureMapper;
 import com.zynchub.digital.hubservice.app.service.FeaturesRetriever;
+import com.zynchub.digital.hubservice.app.service.impl.AppConfigFeaturesRetrieverImpl;
 import com.zynchub.digital.hubservice.app.service.impl.PropertyFeaturesRetrieverImpl;
-import com.zynchub.digital.hubservice.app.service.impl.RemoteFeaturesRetrieverImpl;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class FeaturesConfigurationTest {
 
   private final ApplicationContextRunner contextRunner =
       new ApplicationContextRunner()
-          .withConfiguration(
-              AutoConfigurations.of(RestClientAutoConfiguration.class))
           .withUserConfiguration(FeaturesConfiguration.class, FeatureMapper.class);
 
   @Test
-  void property_retriever_is_default() {
+  void appconfig_retriever_is_default() {
     contextRunner
-        .withPropertyValues("features.remote.enabled=false", "features.file=test-features.yml")
+        .withPropertyValues("aws.app-config.features.enabled=true")
         .run(
             context -> {
               FeaturesRetriever retriever = context.getBean(FeaturesRetriever.class);
-              assertThat(retriever).isInstanceOf(PropertyFeaturesRetrieverImpl.class);
+              assertThat(retriever).isInstanceOf(AppConfigFeaturesRetrieverImpl.class);
             });
   }
 
   @Test
-  void remote_retriever_is_used_when_enabled() {
+  void property_retriever_is_used_when_disabled() {
     contextRunner
-        .withPropertyValues("features.remote.enabled=true", "features.remote.url=https://x")
+        .withPropertyValues("aws.app-config.features.enabled=false")
         .run(
             context -> {
               FeaturesRetriever retriever = context.getBean(FeaturesRetriever.class);
-              assertThat(retriever).isInstanceOf(RemoteFeaturesRetrieverImpl.class);
+              assertThat(retriever).isInstanceOf(PropertyFeaturesRetrieverImpl.class);
             });
   }
 }

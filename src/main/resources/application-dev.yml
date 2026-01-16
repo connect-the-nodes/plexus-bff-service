@@ -9,6 +9,4 @@ security:
     issuer-uri: ${SECURITY_JWT_ISSUER_URI}
 
 features:
-  remote:
-    enabled: true
-    url: ${FEATURES_REMOTE_URL}
+  file: features.yml
