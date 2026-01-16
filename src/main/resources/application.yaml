@@ -9,12 +9,29 @@ spring:
       name: admin
       password: admin
       roles: ADMIN
+  session:
+    store-type: none
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.session.SessionAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+management:
+  health:
+    redis:
+      enabled: false
+security:
+  jwt:
+    jwk-set-uri: "https://example.invalid/.well-known/jwks.json"
+    # Set one of these per environment
+    # issuer-uri: "https://<issuer>/.well-known/openid-configuration"
 springdoc:
   api-docs:
     enabled: true
   show-actuator: true
   swagger-ui:
+    enabled: true
     disable-swagger-default-url: true
+    path: /swagger-ui.html
+    url: /v3/api-docs
+    config-url: /v3/api-docs/swagger-config
 logging:
   level:
     org.springdoc: TRACE
