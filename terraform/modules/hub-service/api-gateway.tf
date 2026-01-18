@@ -12,6 +12,7 @@ locals {
 resource "aws_api_gateway_rest_api" "hub_api" {
   name = "zynchub-api-${var.environment}"
   body = local.openapi_spec
+  tags = var.tags
 
   endpoint_configuration {
     types = ["REGIONAL"]
@@ -24,6 +25,7 @@ resource "aws_api_gateway_rest_api" "hub_api" {
 resource "aws_api_gateway_vpc_link" "main" {
   name        = "zynchub-vpc-link-${var.environment}"
   target_arns = [aws_lb.nlb.arn]
+  tags        = var.tags
 }
 
 ############################################
@@ -48,6 +50,7 @@ resource "aws_api_gateway_stage" "this" {
   stage_name    = var.environment
   rest_api_id   = aws_api_gateway_rest_api.hub_api.id
   deployment_id = aws_api_gateway_deployment.this.id
+  tags          = var.tags
 
   access_log_settings {
     destination_arn = local.apigw_log_group_arn

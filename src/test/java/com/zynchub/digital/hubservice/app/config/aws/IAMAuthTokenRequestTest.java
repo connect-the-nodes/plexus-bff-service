@@ -3,25 +3,20 @@ package com.zynchub.digital.hubservice.app.config.aws;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.zynchub.digital.hubservice.app.exception.InvalidDataException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 
-@ExtendWith(MockitoExtension.class)
 class IAMAuthTokenRequestTest {
 
-  @Mock private AwsCredentials awsCredentials;
-  @Mock private AwsCredentialsProvider awsCredentialsProvider;
-  @InjectMocks private IAMAuthTokenRequest iamAuthTokenRequest;
+  private final IAMAuthTokenRequest iamAuthTokenRequest = new IAMAuthTokenRequest();
 
   @Test
   void shouldReturnSignedRequestUri() {
@@ -29,10 +24,9 @@ class IAMAuthTokenRequestTest {
     ReflectionTestUtils.setField(iamAuthTokenRequest, "replicationGroupId", "testReplicationGroup");
     ReflectionTestUtils.setField(iamAuthTokenRequest, "region", "testRegion");
 
-    when(awsCredentialsProvider.resolveCredentials()).thenReturn(awsCredentials);
-    when(awsCredentials.accessKeyId()).thenReturn("accessKey");
-    when(awsCredentials.secretAccessKey()).thenReturn("secretKey");
-    String signedRequestUri = iamAuthTokenRequest.toSignedRequestUri(awsCredentialsProvider);
+    AwsCredentialsProvider provider =
+        StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey"));
+    String signedRequestUri = iamAuthTokenRequest.toSignedRequestUri(provider);
 
     assertAll(
         () -> assertThat(signedRequestUri).doesNotContain("https://"),
@@ -51,11 +45,11 @@ class IAMAuthTokenRequestTest {
     ReflectionTestUtils.setField(iamAuthTokenRequest, "replicationGroupId", "testReplicationGroup");
     ReflectionTestUtils.setField(iamAuthTokenRequest, "region", "testRegion");
 
-    when(awsCredentialsProvider.resolveCredentials()).thenThrow(RuntimeException.class);
-
     assertThrows(
         InvalidDataException.class,
-        () -> iamAuthTokenRequest.toSignedRequestUri(awsCredentialsProvider));
+        () ->
+            iamAuthTokenRequest.toSignedRequestUri(
+                failingIdentityProvider(new ExecutionException(new RuntimeException("boom")))));
   }
 
   @Test
@@ -64,11 +58,26 @@ class IAMAuthTokenRequestTest {
     ReflectionTestUtils.setField(iamAuthTokenRequest, "replicationGroupId", "testReplicationGroup");
     ReflectionTestUtils.setField(iamAuthTokenRequest, "region", "testRegion");
 
-    when(awsCredentialsProvider.resolveCredentials()).thenReturn(null);
-
     assertThrows(
         InvalidDataException.class,
-        () -> iamAuthTokenRequest.toSignedRequestUri(awsCredentialsProvider));
+        () ->
+            iamAuthTokenRequest.toSignedRequestUri(
+                failingIdentityProvider(new InterruptedException("interrupted"))));
   }
 
+  private static AwsCredentialsProvider failingIdentityProvider(Throwable throwable) {
+    CompletableFuture<AwsCredentialsIdentity> failed = new CompletableFuture<>();
+    failed.completeExceptionally(throwable);
+    return new AwsCredentialsProvider() {
+      @Override
+      public AwsCredentials resolveCredentials() {
+        return AwsBasicCredentials.create("accessKey", "secretKey");
+      }
+
+      @Override
+      public CompletableFuture<? extends AwsCredentialsIdentity> resolveIdentity() {
+        return failed;
+      }
+    };
+  }
 }

@@ -1,0 +1,32 @@
+spring:
+  config:
+    activate:
+      on-profile: local-redis
+  session:
+    store-type: redis
+  redis:
+    namespace: local:spring:session
+  data:
+    redis:
+      host: localhost
+      port: 6380
+      ssl:
+        enabled: false
+      iam:
+        enabled: false
+      fail-fast: true
+      userId: ""
+      replicationGroupId: local
+      region: eu-west-1
+
+management:
+  health:
+    redis:
+      enabled: true
+
+security:
+  enabled: false
+
+features:
+  session:
+    enabled: true

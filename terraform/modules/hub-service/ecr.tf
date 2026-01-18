@@ -1,6 +1,7 @@
 resource "aws_ecr_repository" "main" {
-  name = "zynchub-repo-${var.environment}"
+  name         = "zynchub-repo-${var.environment}"
   force_delete = true
+  tags         = var.tags
 }
 
 resource "aws_ecr_lifecycle_policy" "cleanup" {

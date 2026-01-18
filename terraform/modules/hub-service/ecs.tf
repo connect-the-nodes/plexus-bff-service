@@ -16,6 +16,7 @@ data "aws_ami" "ecs_optimized" {
 ############################################
 resource "aws_ecs_cluster" "main" {
   name = "zynchub-cluster-${var.environment}"
+  tags = var.tags
 }
 
 ############################################
@@ -24,7 +25,7 @@ resource "aws_ecs_cluster" "main" {
 resource "aws_ecs_task_definition" "app" {
   family                   = "zynchub-task-${var.environment}"
   requires_compatibilities = ["EC2"]
-  network_mode             = "awsvpc"
+  network_mode             = "bridge"
 
   cpu    = "256"
   memory = "512"
@@ -50,7 +51,17 @@ resource "aws_ecs_task_definition" "app" {
         { name = "SPRING_PROFILES_ACTIVE", value = var.environment }
         , { name = "AWS_APP_CONFIG_FEATURES_APPLICATION_ID", value = aws_appconfig_application.features.id }
         , { name = "AWS_APP_CONFIG_FEATURES_ENVIRONMENT_ID", value = aws_appconfig_environment.features.environment_id }
-        , { name = "AWS_APP_CONFIG_FEATURES_CONFIGURATION_ID", value = aws_appconfig_configuration_profile.features.id }
+        , { name = "AWS_APP_CONFIG_FEATURES_CONFIGURATION_ID", value = aws_appconfig_configuration_profile.features.configuration_profile_id }
+        , { name = "SPRING_DATA_REDIS_HOST", value = aws_elasticache_replication_group.redis.primary_endpoint_address }
+        , { name = "SPRING_DATA_REDIS_PORT", value = tostring(aws_elasticache_replication_group.redis.port) }
+        , { name = "SPRING_DATA_REDIS_SSL_ENABLED", value = "true" }
+        , { name = "SPRING_DATA_REDIS_IAM_ENABLED", value = "true" }
+        , { name = "SPRING_DATA_REDIS_USERID", value = aws_elasticache_user.redis_iam.user_id }
+        , { name = "SPRING_DATA_REDIS_REPLICATIONGROUPID", value = aws_elasticache_replication_group.redis.replication_group_id }
+        , { name = "SPRING_DATA_REDIS_REGION", value = var.aws_region }
+        , { name = "SECURITY_ENABLED", value = var.environment == "local" ? "false" : "true" }
+        , { name = "SECURITY_JWT_ISSUER_URI", value = local.cognito_issuer }
+        , { name = "SECURITY_JWT_JWK_SET_URI", value = "${local.cognito_issuer}/.well-known/jwks.json" }
       ]
 
       logConfiguration = {
@@ -63,6 +74,8 @@ resource "aws_ecs_task_definition" "app" {
       }
     }
   ])
+
+  tags = var.tags
 }
 
 ############################################
@@ -71,7 +84,7 @@ resource "aws_ecs_task_definition" "app" {
 resource "aws_launch_template" "ecs" {
   name_prefix   = "zynchub-ecs-${var.environment}-"
   image_id      = data.aws_ami.ecs_optimized.id
-  instance_type = "t3.micro"
+  instance_type = "t3.small"
 
   iam_instance_profile {
     name = aws_iam_instance_profile.ecs_instance_profile.name
@@ -88,6 +101,16 @@ EOF
   lifecycle {
     create_before_destroy = true
   }
+
+  tag_specifications {
+    resource_type = "instance"
+    tags          = var.tags
+  }
+
+  tag_specifications {
+    resource_type = "volume"
+    tags          = var.tags
+  }
 }
 
 ############################################
@@ -96,9 +119,9 @@ EOF
 resource "aws_autoscaling_group" "ecs" {
   name = "zynchub-asg-${var.environment}"
 
-  min_size         = 1
-  max_size         = 1
-  desired_capacity = 1
+  min_size         = 2
+  max_size         = 2
+  desired_capacity = 2
 
   launch_template {
     id      = aws_launch_template.ecs.id
@@ -139,12 +162,6 @@ resource "aws_ecs_service" "main" {
   desired_count   = 1
   launch_type     = "EC2"
 
-  network_configuration {
-    subnets          = aws_subnet.public[*].id
-    security_groups  = [aws_security_group.ecs_tasks.id]
-    assign_public_ip = false
-  }
-
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
     container_name   = "zynchub-app"
@@ -155,4 +172,6 @@ resource "aws_ecs_service" "main" {
     aws_autoscaling_group.ecs,
     aws_lb_listener.app
   ]
+
+  tags = var.tags
 }

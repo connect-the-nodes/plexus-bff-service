@@ -92,15 +92,19 @@ resource "aws_lb" "nlb" {
 }
 
 resource "aws_lb_target_group" "app" {
-  name        = "zynchub-tg-${var.environment}"
+  name_prefix = "ztg-"
   port        = 8080
   protocol    = "TCP"
   vpc_id      = aws_vpc.main.id
-  target_type = "ip"
+  target_type = "instance"
 
   health_check {
     protocol = "TCP"
     port     = "8080"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 
   tags = var.tags

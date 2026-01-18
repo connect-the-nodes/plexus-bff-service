@@ -25,4 +25,8 @@ module "hub_service" {
 
   create_apigw_log_group       = var.create_apigw_log_group
   create_apigw_cloudwatch_role = var.create_apigw_cloudwatch_role
+
+  cognito_domain_prefix = "zynchub-${var.environment}-${data.aws_caller_identity.current.account_id}"
+  cognito_callback_urls = ["https://example.com/callback"]
+  cognito_logout_urls   = ["https://example.com/logout"]
 }

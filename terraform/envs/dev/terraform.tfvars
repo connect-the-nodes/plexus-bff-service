@@ -1,9 +1,9 @@
 environment = "dev"
 aws_region  = "eu-west-1"
 
-# This is injected dynamically by GitHub Actions
-# Example: 9a3f7c2b8a1e
-app_version = "bff7bddfed8939c16e107eaaf8e958702aa37c81"
+# This is injected dynamically by GitHub Actions.
+# For manual applies, "latest" matches the moving tag pushed by the workflow.
+app_version = "latest"
 
 # Example:
 # 410521973628.dkr.ecr.eu-west-1.amazonaws.com/zynchub-repo-dev

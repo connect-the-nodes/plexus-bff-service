@@ -23,3 +23,5 @@ paths:
         uri: "http://${nlb_dns}:8080/{proxy}"
         connectionType: VPC_LINK
         connectionId: "${vpc_link_id}"
+        requestParameters:
+          integration.request.path.proxy: "method.request.path.proxy"

@@ -84,6 +84,10 @@
 		</dependency>
 		<dependency>
 			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>http-auth-aws</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
 			<artifactId>appconfigdata</artifactId>
 		</dependency>
 
@@ -140,7 +144,6 @@
 			<groupId>it.ozimov</groupId>
 			<artifactId>embedded-redis</artifactId>
 			<version>0.7.3</version>
-			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
@@ -176,3 +179,4 @@
 	</build>
 
 </project>
+

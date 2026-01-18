@@ -9,6 +9,7 @@ resource "aws_appconfig_deployment_strategy" "all_at_once" {
   final_bake_time_in_minutes     = 0
   replicate_to                   = "NONE"
   description                    = "All at once rollout"
+  tags                           = var.tags
 }
 
 resource "aws_appconfig_application" "features" {

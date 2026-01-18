@@ -91,6 +91,57 @@ The hub service operates as part of a broader integration platform:
 
 ---
 
+## Local Redis (embedded)
+
+For local development with session data persisted in Redis, use the embedded Redis profile:
+
+- Profile: `local-redis`
+- Redis host/port: `localhost:6380`
+- Session store: `spring.session.store-type=redis`
+- Namespace: `local:spring:session`
+
+Example:
+
+```bash
+SPRING_PROFILES_ACTIVE=local-redis
+```
+
+The default `local` profile keeps `spring.session.store-type=none` and disables Redis auto-configuration.
+
+---
+
+## Dev Redis (AWS)
+
+In `dev`, Redis sessions are backed by AWS ElastiCache (Redis) with IAM authentication enabled.
+Terraform injects the required environment variables into the ECS task definition.
+
+Required env vars (set by Terraform):
+
+- `SPRING_DATA_REDIS_HOST` (ElastiCache primary endpoint)
+- `SPRING_DATA_REDIS_PORT` (default `6379`)
+- `SPRING_DATA_REDIS_SSL_ENABLED=true`
+- `SPRING_DATA_REDIS_IAM_ENABLED=true`
+- `SPRING_DATA_REDIS_USERID` (ElastiCache IAM user)
+- `SPRING_DATA_REDIS_REPLICATIONGROUPID`
+- `SPRING_DATA_REDIS_REGION` (e.g., `eu-west-1`)
+
+The `dev` profile enables:
+- `spring.session.store-type=redis`
+- `spring.redis.namespace=dev:spring:session`
+
+Verification:
+
+- Redis health (when enabled): `GET /actuator/health` should include `"redis": {"status": "UP"}`.
+- Session persistence: create a session via `POST /_test/session` (enabled in `dev` and `local-redis`) and confirm Redis keys are created under the namespace prefix.
+
+Example:
+
+```bash
+curl -X POST http://localhost:8080/_test/session
+```
+
+---
+
 ## GitHub Actions deployment permissions
 
 If the deploy workflow fails at the ECR login step with `ecr:GetAuthorizationToken`, the

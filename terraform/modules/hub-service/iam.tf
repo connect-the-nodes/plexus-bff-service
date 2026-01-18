@@ -12,6 +12,8 @@ resource "aws_iam_role" "ecs_task_execution" {
       Action    = "sts:AssumeRole"
     }]
   })
+
+  tags = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
@@ -33,6 +35,8 @@ resource "aws_iam_role" "ecs_task_role" {
       Action    = "sts:AssumeRole"
     }]
   })
+
+  tags = var.tags
 }
 
 ####################################
@@ -49,6 +53,8 @@ resource "aws_iam_role" "ecs_instance_role" {
       Action    = "sts:AssumeRole"
     }]
   })
+
+  tags = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_instance_policy" {
@@ -59,6 +65,7 @@ resource "aws_iam_role_policy_attachment" "ecs_instance_policy" {
 resource "aws_iam_instance_profile" "ecs_instance_profile" {
   name = "zynchub-ecs-instance-profile-${var.environment}"
   role = aws_iam_role.ecs_instance_role.name
+  tags = var.tags
 }
 
 resource "aws_iam_policy" "appconfig_features_read" {
@@ -70,6 +77,8 @@ resource "aws_iam_policy" "appconfig_features_read" {
       {
         Effect = "Allow"
         Action = [
+          "appconfig:StartConfigurationSession",
+          "appconfig:GetLatestConfiguration",
           "appconfigdata:StartConfigurationSession",
           "appconfigdata:GetLatestConfiguration"
         ]
@@ -77,11 +86,38 @@ resource "aws_iam_policy" "appconfig_features_read" {
       }
     ]
   })
+  tags = var.tags
 }
 
 resource "aws_iam_role_policy_attachment" "appconfig_features_read" {
   role       = aws_iam_role.ecs_task_role.name
   policy_arn = aws_iam_policy.appconfig_features_read.arn
+}
+
+resource "aws_iam_policy" "redis_connect" {
+  name        = "zynchub-redis-connect-${var.environment}"
+  description = "Allow ECS task to connect to Redis"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "elasticache:Connect"
+        ]
+        Resource = [
+          aws_elasticache_replication_group.redis.arn,
+          aws_elasticache_user.redis_iam.arn
+        ]
+      }
+    ]
+  })
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "redis_connect" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = aws_iam_policy.redis_connect.arn
 }
 
 ####################################
@@ -99,6 +135,8 @@ resource "aws_iam_role" "api_gw_cloudwatch" {
       Action    = "sts:AssumeRole"
     }]
   })
+
+  tags = var.tags
 }
 
 data "aws_iam_role" "api_gw_cloudwatch" {

@@ -49,3 +49,33 @@ output "vpc_link_id" {
   description = "API Gateway VPC Link ID"
   value       = aws_api_gateway_vpc_link.main.id
 }
+
+output "redis_primary_endpoint" {
+  description = "Redis primary endpoint address"
+  value       = aws_elasticache_replication_group.redis.primary_endpoint_address
+}
+
+output "redis_user_id" {
+  description = "Redis IAM user ID"
+  value       = aws_elasticache_user.redis_iam.user_id
+}
+
+output "cognito_user_pool_id" {
+  description = "Cognito user pool ID"
+  value       = aws_cognito_user_pool.main.id
+}
+
+output "cognito_user_pool_client_id" {
+  description = "Cognito user pool client ID"
+  value       = aws_cognito_user_pool_client.app.id
+}
+
+output "cognito_domain" {
+  description = "Cognito hosted UI domain"
+  value       = aws_cognito_user_pool_domain.main.domain
+}
+
+output "cognito_issuer" {
+  description = "Cognito issuer URL"
+  value       = local.cognito_issuer
+}

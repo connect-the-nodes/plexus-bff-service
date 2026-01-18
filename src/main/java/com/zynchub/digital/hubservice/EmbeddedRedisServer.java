@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import redis.embedded.RedisServer;
 
 @Component
-@Profile("local-it")
+@Profile("local-redis")
 public class EmbeddedRedisServer {
 
   private static final Logger log = LoggerFactory.getLogger(EmbeddedRedisServer.class);
