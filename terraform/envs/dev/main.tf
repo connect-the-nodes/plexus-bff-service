@@ -29,4 +29,5 @@ module "hub_service" {
   cognito_domain_prefix = "zynchub-${var.environment}-${data.aws_caller_identity.current.account_id}"
   cognito_callback_urls = ["https://example.com/callback"]
   cognito_logout_urls   = ["https://example.com/logout"]
+  auth_post_login_redirect_uri = "https://example.com/callback"
 }

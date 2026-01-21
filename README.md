@@ -88,6 +88,10 @@ The hub service operates as part of a broader integration platform:
 
 - OpenAPI specifications are available in the `/openapi` directory
 - Authentication and authorization details are defined in the security documentation
+- Additional docs:
+  - `docs/oauth-flow.md` (Cognito OAuth/OIDC flow)
+  - `docs/redis.md` (Redis usage and configuration)
+  - `docs/feature-flags.md` (Feature flagging approach)
 
 ---
 

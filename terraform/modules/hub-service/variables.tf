@@ -58,6 +58,12 @@ variable "cognito_allowed_oauth_scopes" {
   default     = ["openid", "email", "profile"]
 }
 
+variable "auth_post_login_redirect_uri" {
+  description = "Redirect URL after /auth/callback completes"
+  type        = string
+  default     = null
+}
+
 variable "create_apigw_log_group" {
   type        = bool
   default     = true

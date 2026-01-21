@@ -21,6 +21,38 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+resource "aws_iam_policy" "ecs_ssm_parameters" {
+  name        = "zynchub-ecs-ssm-${var.environment}"
+  description = "Allow ECS task execution to read SSM parameters"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:GetParameters",
+          "ssm:GetParameter",
+          "ssm:GetParametersByPath"
+        ]
+        Resource = [
+          aws_ssm_parameter.auth_cognito_domain.arn,
+          aws_ssm_parameter.auth_cognito_client_id.arn,
+          aws_ssm_parameter.auth_cognito_redirect_uri.arn,
+          aws_ssm_parameter.auth_cognito_post_login_redirect_uri.arn,
+          aws_ssm_parameter.security_jwt_issuer_uri.arn,
+          aws_ssm_parameter.security_jwt_jwk_set_uri.arn
+        ]
+      }
+    ]
+  })
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_ssm_parameters" {
+  role       = aws_iam_role.ecs_task_execution.name
+  policy_arn = aws_iam_policy.ecs_ssm_parameters.arn
+}
+
 ####################################
 # ECS TASK ROLE
 ####################################

@@ -79,3 +79,18 @@ output "cognito_issuer" {
   description = "Cognito issuer URL"
   value       = local.cognito_issuer
 }
+
+output "ssm_auth_cognito_domain" {
+  description = "SSM parameter for Cognito domain"
+  value       = aws_ssm_parameter.auth_cognito_domain.name
+}
+
+output "ssm_auth_cognito_client_id" {
+  description = "SSM parameter for Cognito client ID"
+  value       = aws_ssm_parameter.auth_cognito_client_id.name
+}
+
+output "ssm_security_jwt_issuer_uri" {
+  description = "SSM parameter for JWT issuer URI"
+  value       = aws_ssm_parameter.security_jwt_issuer_uri.name
+}

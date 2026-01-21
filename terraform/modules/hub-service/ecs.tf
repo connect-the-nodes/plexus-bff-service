@@ -60,8 +60,16 @@ resource "aws_ecs_task_definition" "app" {
         , { name = "SPRING_DATA_REDIS_REPLICATIONGROUPID", value = aws_elasticache_replication_group.redis.replication_group_id }
         , { name = "SPRING_DATA_REDIS_REGION", value = var.aws_region }
         , { name = "SECURITY_ENABLED", value = var.environment == "local" ? "false" : "true" }
-        , { name = "SECURITY_JWT_ISSUER_URI", value = local.cognito_issuer }
-        , { name = "SECURITY_JWT_JWK_SET_URI", value = "${local.cognito_issuer}/.well-known/jwks.json" }
+        , { name = "AUTH_COGNITO_ENABLED", value = var.environment == "local" ? "false" : "true" }
+      ]
+
+      secrets = [
+        { name = "AUTH_COGNITO_DOMAIN", valueFrom = aws_ssm_parameter.auth_cognito_domain.arn }
+        , { name = "AUTH_COGNITO_CLIENT_ID", valueFrom = aws_ssm_parameter.auth_cognito_client_id.arn }
+        , { name = "AUTH_COGNITO_REDIRECT_URI", valueFrom = aws_ssm_parameter.auth_cognito_redirect_uri.arn }
+        , { name = "AUTH_COGNITO_POST_LOGIN_REDIRECT_URI", valueFrom = aws_ssm_parameter.auth_cognito_post_login_redirect_uri.arn }
+        , { name = "SECURITY_JWT_ISSUER_URI", valueFrom = aws_ssm_parameter.security_jwt_issuer_uri.arn }
+        , { name = "SECURITY_JWT_JWK_SET_URI", valueFrom = aws_ssm_parameter.security_jwt_jwk_set_uri.arn }
       ]
 
       logConfiguration = {
