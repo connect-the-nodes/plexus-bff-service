@@ -1,4 +1,4 @@
-﻿name: Notify EventCatalog
+name: Notify EventCatalog
 
 on:
   push:
@@ -11,11 +11,11 @@ jobs:
     steps:
       - name: Trigger EventCatalog sync
         env:
-          EVENTCATALOG_TOKEN: ${{ secrets.INTEGSHOP_GH_TOKEN }}
+          EVENTCATALOG_TOKEN: ${{ secrets.EVENTCATALOG_GH_TOKEN }}
         run: |
           curl -s -X POST \
             -H "Authorization: token $EVENTCATALOG_TOKEN" \
             -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/integshop/zynchub-event-catalog/dispatches \
+            https://api.github.com/repos/connect-the-nodes/zynchub-event-catalog/dispatches \
             -d '{"event_type":"org-repo-push"}'
 

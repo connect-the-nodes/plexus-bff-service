@@ -1,6 +1,8 @@
-name: Deploy - Zynchub Digital Hub Service (ECS EC2)
+name: Build and Push Hub Image
 
 on:
+  push:
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       environment:
@@ -8,24 +10,37 @@ on:
         required: true
         default: "dev"
         type: choice
-        options: [dev]
+        options: [dev, staging, prod]
+      image_tag:
+        description: "Optional image tag override (defaults to commit SHA)"
+        required: false
+        default: ""
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    env:
-      # These variables tell Terraform which env and tag to use
-      TF_VAR_environment: ${{ inputs.environment }}
-      TF_VAR_aws_region: ${{ secrets.AWS_REGION }}
-      ECR_REPO_NAME: zynchub-repo-${{ inputs.environment }}
-
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
+
+      - name: Resolve target environment and tag
+        shell: bash
+        run: |
+          TARGET_ENV="dev"
+          IMAGE_TAG="${{ github.sha }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TARGET_ENV="${{ inputs.environment }}"
+            if [ -n "${{ inputs.image_tag }}" ]; then
+              IMAGE_TAG="${{ inputs.image_tag }}"
+            fi
+          fi
+          echo "TARGET_ENV=$TARGET_ENV" >> "$GITHUB_ENV"
+          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
+          echo "ECR_REPO_NAME=zynchub-repo-$TARGET_ENV" >> "$GITHUB_ENV"
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -33,52 +48,39 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Verify target AWS account
+        run: |
+          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]; then
+            echo "Missing AWS_ACCOUNT_ID secret."
+            exit 1
+          fi
+          ACTUAL_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          if [ "$ACTUAL_ACCOUNT_ID" != "${{ secrets.AWS_ACCOUNT_ID }}" ]; then
+            echo "Configured role is using AWS account $ACTUAL_ACCOUNT_ID, expected ${{ secrets.AWS_ACCOUNT_ID }}."
+            exit 1
+          fi
+
+      - name: Ensure ECR repository exists
+        run: |
+          aws ecr create-repository --repository-name "$ECR_REPO_NAME" >/dev/null 2>&1 || true
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Terraform Init (ECR bootstrap)
-        working-directory: terraform/envs/${{ inputs.environment }}
-        run: terraform init
-
-      - name: Terraform Apply (ECR only)
-        working-directory: terraform/envs/${{ inputs.environment }}
-        run: |
-          terraform apply -auto-approve -input=false \
-            -target=module.hub_service.aws_ecr_repository.main \
-            -target=module.hub_service.aws_ecr_lifecycle_policy.cleanup
-
       - name: Build and Push Docker Image
-        id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Build using the Dockerfile we discussed
           docker build -t $ECR_REGISTRY/$ECR_REPO_NAME:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPO_NAME:$IMAGE_TAG
 
-          # Also push a moving tag for manual Terraform applies
           docker tag $ECR_REGISTRY/$ECR_REPO_NAME:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPO_NAME:latest
           docker push $ECR_REGISTRY/$ECR_REPO_NAME:latest
-          
-          # Export variables for Terraform step
-          echo "TF_VAR_app_version=$IMAGE_TAG" >> $GITHUB_ENV
-          echo "TF_VAR_ecr_repository_url=$ECR_REGISTRY/$ECR_REPO_NAME" >> $GITHUB_ENV
 
       - name: Verify ECR Image Tag Exists
-        env:
-          IMAGE_TAG: ${{ github.sha }}
         run: |
           aws ecr describe-images \
             --repository-name "$ECR_REPO_NAME" \
             --image-ids imageTag="$IMAGE_TAG" \
             --region "${{ secrets.AWS_REGION }}"
-
-      - name: Terraform Apply
-        working-directory: terraform/envs/${{ inputs.environment }}
-        run: |
-          terraform apply -auto-approve -input=false
