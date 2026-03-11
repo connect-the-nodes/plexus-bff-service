@@ -81,6 +81,28 @@ class ObservabilityControllerTest {
         .getInventory(org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.isNull(), eq("tenant-local"));
   }
 
+  @Test
+  void usesTenantFromCognitoGroupWhenTenantClaimMissing() {
+    ObservabilityService observabilityService = org.mockito.Mockito.mock(ObservabilityService.class);
+    ObservabilityController controller = new ObservabilityController(observabilityService);
+    ObservabilityOverviewResponseDto response = new ObservabilityOverviewResponseDto();
+
+    when(observabilityService.getOverview(org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.isNull(), eq(300), eq("demo-a")))
+        .thenReturn(response);
+
+    Jwt jwt =
+        Jwt.withTokenValue("token")
+            .header("alg", "none")
+            .claim("cognito:groups", List.of("TENANT_demo-a"))
+            .build();
+    JwtAuthenticationToken auth = new JwtAuthenticationToken(jwt, List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+
+    controller.getOverview(null, null, 300, null, auth);
+
+    verify(observabilityService)
+        .getOverview(org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.isNull(), eq(300), eq("demo-a"));
+  }
+
   private JwtAuthenticationToken jwtAuth(String tenantId) {
     Jwt jwt =
         Jwt.withTokenValue("token")

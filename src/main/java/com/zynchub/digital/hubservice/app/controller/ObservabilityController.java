@@ -6,6 +6,7 @@ import com.zynchub.digital.hubservice.app.dto.ObservabilityInventoryItemResponse
 import com.zynchub.digital.hubservice.app.dto.ObservabilityOverviewResponseDto;
 import com.zynchub.digital.hubservice.app.service.ObservabilityService;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -80,6 +81,24 @@ public class ObservabilityController {
         Object altTenantId = token.getToken().getClaims().get("tenant_id");
         if (altTenantId instanceof String altTenantIdValue && !altTenantIdValue.isBlank()) {
             return altTenantIdValue;
+        }
+
+        Object groups = token.getToken().getClaims().get("cognito:groups");
+        if (groups instanceof Collection<?> groupCollection) {
+            for (Object group : groupCollection) {
+                if (!(group instanceof String groupValue) || groupValue.isBlank()) {
+                    continue;
+                }
+                if (groupValue.startsWith("TENANT_") && groupValue.length() > "TENANT_".length()) {
+                    return groupValue.substring("TENANT_".length());
+                }
+                if (groupValue.startsWith("tenant:") && groupValue.length() > "tenant:".length()) {
+                    return groupValue.substring("tenant:".length());
+                }
+                if (groupValue.startsWith("TENANT#") && groupValue.length() > "TENANT#".length()) {
+                    return groupValue.substring("TENANT#".length());
+                }
+            }
         }
 
         return null;
