@@ -68,3 +68,7 @@ auth:
     redirect-uri: ${AUTH_COGNITO_REDIRECT_URI:}
     post-login-redirect-uri: ${AUTH_COGNITO_POST_LOGIN_REDIRECT_URI:https://example.com/callback}
     scopes: openid,email,profile
+
+observability:
+  service:
+    base-url: ${OBSERVABILITY_SERVICE_BASE_URL:http://localhost:8081}
