@@ -8,17 +8,17 @@
 		<version>3.4.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.zynchub.digital.hubservice</groupId>
+	<groupId>com.zynchub.digital.plexus.hubservice</groupId>
 	<properties>
 		<java.version>17</java.version>
 		<spring-boot.version>3.4.2</spring-boot.version>
 		<springdoc.version>2.5.0</springdoc.version>
 		<aws.sdk.version>2.25.29</aws.sdk.version>
 	</properties>
-	<artifactId>zynchub</artifactId>
+	<artifactId>plexus-hub-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>zynchub</name>
-	<description>Zynchub Application Hub Service</description>
+	<name>plexus-hub-service</name>
+	<description>Plexus Hub Service</description>
 	<url/>
 	<licenses>
 		<license/>

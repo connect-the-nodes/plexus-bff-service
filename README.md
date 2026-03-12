@@ -1,10 +1,10 @@
-# zynchub-digital-hub-service
+# plexus-hub-service
 
 Primary backend hub microservice that exposes REST (and optional GraphQL) endpoints for the frontend applications.
 
 ## Overview
 
-The **zynchub-digital-hub-service** acts as the central control-plane service for the ZyncHub integration platform. It provides secure, versioned APIs consumed by React-based frontend applications and automation tools to configure, manage, and govern integrations with third-party data providers.
+The **plexus-hub-service** acts as the central control-plane service for the ZyncHub integration platform. It provides secure, versioned APIs consumed by React-based frontend applications and automation tools to configure, manage, and govern integrations with third-party data providers.
 
 This service enables users to define integration contracts, canonical models, provider mappings, and integration workflows without requiring custom integration code. It is designed for enterprise insurance environments, supporting UK and EU regulatory requirements.
 
@@ -177,11 +177,21 @@ scopes as needed for your account):
         "ecr:PutImage",
         "ecr:UploadLayerPart"
       ],
-      "Resource": "arn:aws:ecr:<region>:<account-id>:repository/zynchub-repo-*"
+      "Resource": "arn:aws:ecr:<region>:<account-id>:repository/plexus-hub-*"
     }
   ]
 }
 ```
 
-The Terraform apply step will also require permissions for ECS, EC2, IAM, CloudWatch Logs,
-Auto Scaling, and API Gateway resources defined under `terraform/modules/hub-service`.
+Infrastructure code for Hub is now maintained centrally in:
+
+`C:\Naresh\zynch_app\zynchub-platform-infra`
+
+Relevant stack path:
+
+`live/dev/eu-west-1/plexus/hub`
+
+Observability integration configuration is managed there via:
+
+- Terraform variable: `observability_service_base_url`
+- ECS env var: `OBSERVABILITY_SERVICE_BASE_URL`
