@@ -1,0 +1,9 @@
+features:
+  - name: FEATURE_CONNECTORS
+    description: Enable connectors endpoint
+    enabled: true
+    parent: FEATURE_CONNECTORS
+  - name: FEATURE_CONNECTORS_V2
+    description: Example child flag for connectors
+    enabled: true
+    parent: FEATURE_CONNECTORS

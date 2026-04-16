@@ -1,0 +1,19 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+  session:
+    store-type: none
+
+management:
+  health:
+    redis:
+      enabled: false
+
+security:
+  enabled: false
+
+aws:
+  app-config:
+    features:
+      enabled: false

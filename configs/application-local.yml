@@ -1,0 +1,37 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+  session:
+    store-type: none
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.session.SessionAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+  redis:
+    namespace: local:spring:session
+
+management:
+  health:
+    redis:
+      enabled: false
+
+security:
+  enabled: false
+
+logging:
+  level:
+    org.springdoc: DEBUG
+    org.springframework.web: DEBUG
+    com.zynchub.digital: DEBUG
+
+features:
+  file: features.yml
+  session:
+    enabled: false
+
+aws:
+  app-config:
+    features:
+      enabled: false
+
+property-logger:
+  enabled: true

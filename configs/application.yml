@@ -1,0 +1,76 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: plexus-hub-service
+  profiles:
+    active: local
+  security:
+    user:
+      name: admin
+      password: admin
+      roles: ADMIN
+  retry:
+    maxAttempts: 3
+    delay: 1000
+    maxDelay: 4000
+    random: true
+
+management:
+  health:
+    redis:
+      enabled: false
+
+security:
+  enabled: false
+  jwt:
+    jwk-set-uri: ${SECURITY_JWT_JWK_SET_URI:}
+    issuer-uri: ${SECURITY_JWT_ISSUER_URI:}
+    authorities-claim: ${SECURITY_JWT_AUTHORITIES_CLAIM:cognito:groups}
+    role-prefix: ${SECURITY_JWT_ROLE_PREFIX:ROLE_}
+
+springdoc:
+  api-docs:
+    enabled: true
+  show-actuator: true
+  swagger-ui:
+    enabled: true
+    disable-swagger-default-url: true
+    path: /swagger-ui.html
+    url: /v3/api-docs
+    config-url: /v3/api-docs/swagger-config
+
+logging:
+  level:
+    org.springdoc: INFO
+    org.springframework.web: INFO
+
+features:
+  file: features.yml
+  session:
+    enabled: false
+
+aws:
+  app-config:
+    features:
+      enabled: true
+      application-id: ${AWS_APP_CONFIG_FEATURES_APPLICATION_ID:}
+      environment-id: ${AWS_APP_CONFIG_FEATURES_ENVIRONMENT_ID:}
+      configuration-id: ${AWS_APP_CONFIG_FEATURES_CONFIGURATION_ID:}
+
+property-logger:
+  enabled: false
+
+auth:
+  cognito:
+    enabled: ${AUTH_COGNITO_ENABLED:false}
+    domain: ${AUTH_COGNITO_DOMAIN:}
+    client-id: ${AUTH_COGNITO_CLIENT_ID:}
+    redirect-uri: ${AUTH_COGNITO_REDIRECT_URI:}
+    post-login-redirect-uri: ${AUTH_COGNITO_POST_LOGIN_REDIRECT_URI:https://example.com/callback}
+    scopes: openid,email,profile
+
+observability:
+  service:
+    base-url: ${OBSERVABILITY_SERVICE_BASE_URL:http://localhost:8081}

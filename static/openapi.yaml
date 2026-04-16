@@ -1,0 +1,27 @@
+openapi: 3.0.1
+info:
+  title: Zynchub Hub Service
+  version: v0
+
+paths:
+  /{proxy+}:
+    x-amazon-apigateway-any-method:
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: Success
+
+      x-amazon-apigateway-integration:
+        type: http_proxy
+        httpMethod: ANY
+        uri: "http://${nlb_dns}:8080/{proxy}"
+        connectionType: VPC_LINK
+        connectionId: "${vpc_link_id}"
+        requestParameters:
+          integration.request.path.proxy: "method.request.path.proxy"

@@ -1,0 +1,25 @@
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6380
+      ssl:
+        enabled: false
+      iam:
+        enabled: false
+      fail-fast: false
+      userId: ""
+      replicationGroupId: test
+      region: test
+  redis:
+    namespace: ittest:spring:session
+  session:
+    store-type: none
+
+management:
+  health:
+    redis:
+      enabled: false
+
+security:
+  enabled: true

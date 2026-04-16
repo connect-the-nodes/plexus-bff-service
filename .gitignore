@@ -1,0 +1,7 @@
+/bin
+/target
+.idea/
+.vscode/
+*.test
+*.exe
+coverage.out

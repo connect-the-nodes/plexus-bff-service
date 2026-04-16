@@ -1,0 +1,40 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  session:
+    store-type: redis
+  redis:
+    namespace: prod:spring:session
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      ssl:
+        enabled: ${SPRING_DATA_REDIS_SSL_ENABLED:true}
+      iam:
+        enabled: ${SPRING_DATA_REDIS_IAM_ENABLED:true}
+      userId: ${SPRING_DATA_REDIS_USERID:}
+      replicationGroupId: ${SPRING_DATA_REDIS_REPLICATIONGROUPID:}
+      region: ${SPRING_DATA_REDIS_REGION:eu-west-1}
+      fail-fast: true
+
+management:
+  health:
+    redis:
+      enabled: true
+
+security:
+  enabled: true
+  jwt:
+    issuer-uri: ${SECURITY_JWT_ISSUER_URI:}
+    jwk-set-uri: ${SECURITY_JWT_JWK_SET_URI:}
+
+features:
+  file: features.yml
+  session:
+    enabled: true
+
+logging:
+  level:
+    root: INFO
