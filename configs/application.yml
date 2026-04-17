@@ -74,3 +74,17 @@ auth:
 observability:
   service:
     base-url: ${OBSERVABILITY_SERVICE_BASE_URL:http://localhost:8081}
+
+database:
+  integration-enabled: ${DB_INTEGRATION_ENABLED:false}
+  auto-migrate: ${DB_AUTO_MIGRATE:true}
+  postgres:
+    host: ${DB_HOST:localhost}
+    port: ${DB_PORT:5432}
+    database: ${DB_NAME:plexus_bff}
+    user: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    sslmode: ${DB_SSLMODE:disable}
+    max-conns: ${DB_MAX_CONNS:10}
+    min-conns: ${DB_MIN_CONNS:2}
+    max-conn-lifetime-minutes: ${DB_MAX_CONN_LIFETIME_MINUTES:30}

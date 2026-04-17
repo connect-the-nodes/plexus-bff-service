@@ -24,6 +24,7 @@ type Config struct {
 	PropertyLogger PropertyLoggerConfig `yaml:"property-logger"`
 	Auth          AuthConfig          `yaml:"auth"`
 	Observability ObservabilityConfig `yaml:"observability"`
+	Database      DatabaseConfig      `yaml:"database"`
 	activeProfile string
 }
 
@@ -192,6 +193,48 @@ type ObservabilityServiceConfig struct {
 	BaseURL string `yaml:"base-url"`
 }
 
+type DatabaseConfig struct {
+	IntegrationEnabled bool               `yaml:"integration-enabled"`
+	AutoMigrate        bool               `yaml:"auto-migrate"`
+	Postgres           PostgresDBConfig   `yaml:"postgres"`
+}
+
+type PostgresDBConfig struct {
+	Host            string `yaml:"host"`
+	Port            int    `yaml:"port"`
+	Database        string `yaml:"database"`
+	User            string `yaml:"user"`
+	Password        string `yaml:"password"`
+	SSLMode         string `yaml:"sslmode"`
+	MaxConns        int32  `yaml:"max-conns"`
+	MinConns        int32  `yaml:"min-conns"`
+	MaxConnLifetime int    `yaml:"max-conn-lifetime-minutes"`
+}
+
+func (c DatabaseConfig) Enabled() bool {
+	return c.IntegrationEnabled
+}
+
+func (c DatabaseConfig) ConnectionString() string {
+	port := c.Postgres.Port
+	if port == 0 {
+		port = 5432
+	}
+	sslMode := c.Postgres.SSLMode
+	if sslMode == "" {
+		sslMode = "disable"
+	}
+	return fmt.Sprintf(
+		"host=%s port=%d dbname=%s user=%s password=%s sslmode=%s",
+		c.Postgres.Host,
+		port,
+		c.Postgres.Database,
+		c.Postgres.User,
+		c.Postgres.Password,
+		sslMode,
+	)
+}
+
 var placeholderPattern = regexp.MustCompile(`\$\{([A-Z0-9_]+)(?::([^}]*))?\}`)
 
 func Load(configDir string) (*Config, error) {
@@ -230,6 +273,21 @@ func Load(configDir string) (*Config, error) {
 	}
 	if cfg.Security.JWT.RolePrefix == "" {
 		cfg.Security.JWT.RolePrefix = "ROLE_"
+	}
+	if cfg.Database.Postgres.Port == 0 {
+		cfg.Database.Postgres.Port = 5432
+	}
+	if cfg.Database.Postgres.SSLMode == "" {
+		cfg.Database.Postgres.SSLMode = "disable"
+	}
+	if cfg.Database.Postgres.MaxConns == 0 {
+		cfg.Database.Postgres.MaxConns = 10
+	}
+	if cfg.Database.Postgres.MinConns == 0 {
+		cfg.Database.Postgres.MinConns = 2
+	}
+	if cfg.Database.Postgres.MaxConnLifetime == 0 {
+		cfg.Database.Postgres.MaxConnLifetime = 30
 	}
 	return cfg, nil
 }

@@ -14,6 +14,7 @@ This repository mirrors:
 - correlation ID propagation
 - optional Redis-backed session behavior
 - container and build artifacts
+- PostgreSQL-backed admin user/group/permission/domain services
 
 ## Layout
 
@@ -44,6 +45,35 @@ Default local URLs:
 
 - `http://localhost:8080/actuator/health`
 - `http://localhost:8080/swagger-ui.html`
+- `http://localhost:8080/api/admin/users`
+- `http://localhost:8080/api/admin/groups`
+- `http://localhost:8080/api/admin/permissions`
+- `http://localhost:8080/api/admin/domains`
+
+## PostgreSQL
+
+The admin user/group/permission/domain services support PostgreSQL via embedded migrations.
+
+Typical local setup:
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE="local"
+$env:DB_INTEGRATION_ENABLED="true"
+$env:DB_HOST="localhost"
+$env:DB_PORT="5432"
+$env:DB_NAME="plexus_bff"
+$env:DB_USER="postgres"
+$env:DB_PASSWORD="postgres"
+go run ./cmd/plexus-bff-service
+```
+
+On startup the application will:
+
+- open a PostgreSQL connection pool
+- run embedded migrations when `DB_AUTO_MIGRATE=true`
+- expose the admin APIs backed by PostgreSQL
+
+See [docs/postgresql-admin-services.md](docs/postgresql-admin-services.md) for the implementation details.
 
 ## Notes
 

@@ -23,6 +23,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("create app: %v", err)
 	}
+	defer application.Close()
 
 	server := &http.Server{
 		Addr:              cfg.Server.ListenAddress(),

@@ -20,6 +20,10 @@ func NewRouter(
 	observabilityController *controller.ObservabilityController,
 	adminObservabilityController *controller.AdminObservabilityController,
 	testSessionController *controller.TestSessionController,
+	adminUsersController *controller.AdminUsersController,
+	adminGroupsController *controller.AdminGroupsController,
+	adminPermissionsController *controller.AdminPermissionsController,
+	domainsController *controller.DomainsController,
 ) (http.Handler, error) {
 	mux := http.NewServeMux()
 
@@ -48,6 +52,29 @@ func NewRouter(
 	mux.Handle("/api/v3/admin/observability/overview", protected(cfg, http.HandlerFunc(adminObservabilityController.Overview)))
 	mux.Handle("/api/v3/admin/observability/tenants", protected(cfg, http.HandlerFunc(adminObservabilityController.Tenants)))
 	mux.Handle("/api/v3/admin/observability/connectors", protected(cfg, http.HandlerFunc(adminObservabilityController.Connectors)))
+	mux.Handle("GET /api/admin/users", protected(cfg, http.HandlerFunc(adminUsersController.List)))
+	mux.Handle("POST /api/admin/users", protected(cfg, http.HandlerFunc(adminUsersController.Create)))
+	mux.Handle("GET /api/admin/users/{id}", protected(cfg, http.HandlerFunc(adminUsersController.Get)))
+	mux.Handle("PUT /api/admin/users/{id}", protected(cfg, http.HandlerFunc(adminUsersController.Update)))
+	mux.Handle("DELETE /api/admin/users/{id}", protected(cfg, http.HandlerFunc(adminUsersController.Delete)))
+	mux.Handle("GET /api/admin/groups", protected(cfg, http.HandlerFunc(adminGroupsController.List)))
+	mux.Handle("POST /api/admin/groups", protected(cfg, http.HandlerFunc(adminGroupsController.Create)))
+	mux.Handle("GET /api/admin/groups/{id}", protected(cfg, http.HandlerFunc(adminGroupsController.Get)))
+	mux.Handle("PUT /api/admin/groups/{id}", protected(cfg, http.HandlerFunc(adminGroupsController.Update)))
+	mux.Handle("DELETE /api/admin/groups/{id}", protected(cfg, http.HandlerFunc(adminGroupsController.Delete)))
+	mux.Handle("GET /api/admin/permissions", protected(cfg, http.HandlerFunc(adminPermissionsController.List)))
+	mux.Handle("POST /api/admin/permissions", protected(cfg, http.HandlerFunc(adminPermissionsController.Create)))
+	mux.Handle("GET /api/admin/permissions/{id}", protected(cfg, http.HandlerFunc(adminPermissionsController.Get)))
+	mux.Handle("PUT /api/admin/permissions/{id}", protected(cfg, http.HandlerFunc(adminPermissionsController.Update)))
+	mux.Handle("DELETE /api/admin/permissions/{id}", protected(cfg, http.HandlerFunc(adminPermissionsController.Delete)))
+	mux.Handle("GET /api/admin/domains/workspace", protected(cfg, http.HandlerFunc(domainsController.Workspace)))
+	mux.Handle("GET /api/admin/domains", protected(cfg, http.HandlerFunc(domainsController.List)))
+	mux.Handle("POST /api/admin/domains", protected(cfg, http.HandlerFunc(domainsController.Create)))
+	mux.Handle("GET /api/admin/domains/approved", protected(cfg, http.HandlerFunc(domainsController.Approved)))
+	mux.Handle("GET /api/admin/domains/{id}", protected(cfg, http.HandlerFunc(domainsController.Get)))
+	mux.Handle("PUT /api/admin/domains/{id}", protected(cfg, http.HandlerFunc(domainsController.Update)))
+	mux.Handle("DELETE /api/admin/domains/{id}", protected(cfg, http.HandlerFunc(domainsController.Delete)))
+	mux.Handle("POST /api/admin/domains/{id}/decision", protected(cfg, http.HandlerFunc(domainsController.Decision)))
 
 	if cfg.ActiveProfile() == "dev" || cfg.ActiveProfile() == "local-redis" {
 		mux.Handle("/_test/session", protected(cfg, sessionWriter(http.HandlerFunc(testSessionController.CreateSession))))
