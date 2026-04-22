@@ -43,7 +43,7 @@ func New(cfg *config.Config) (*Application, error) {
 	if err != nil {
 		return nil, err
 	}
-	if cfg.Database.Enabled() && cfg.Database.AutoMigrate {
+	if cfg.Database.Enabled() && cfg.Database.AutoMigrate && cfg.Database.Schema == "public" {
 		if err := database.RunMigrations(context.Background(), postgres); err != nil {
 			if postgres != nil {
 				postgres.Close()
@@ -54,7 +54,11 @@ func New(cfg *config.Config) (*Application, error) {
 
 	var repositories service.RepositoryCarrier
 	if postgres != nil {
-		adminRepository := impl.NewPostgresAdminRepository(postgres.Pool())
+		adminRepository, err := impl.NewPostgresAdminRepository(cfg.Database, postgres.Pool())
+		if err != nil {
+			postgres.Close()
+			return nil, err
+		}
 		repositories = service.RepositoryCarrier{
 			Users:       adminRepository.Users(),
 			Groups:      adminRepository.Groups(),

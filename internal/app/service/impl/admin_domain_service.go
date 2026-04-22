@@ -16,7 +16,7 @@ import (
 
 const (
 	domainStatusDraft         = "DRAFT"
-	domainStatusPendingReview = "PENDING_REVIEW"
+	domainStatusPendingReview = "PENDING_APPROVAL"
 	domainStatusApproved      = "APPROVED"
 	domainStatusRejected      = "REJECTED"
 )

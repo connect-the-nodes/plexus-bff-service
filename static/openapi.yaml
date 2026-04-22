@@ -1,27 +1,795 @@
-openapi: 3.0.1
+openapi: 3.0.3
 info:
-  title: Zynchub Hub Service
-  version: v0
+  title: Plexus Hub Service API
+  version: 1.0.0
+  description: |
+    Interactive API contract for the locally testable administrative and domain
+    endpoints implemented by `plexus-bff-service-go`.
 
+    This document is intended to stay aligned with the live routes in
+    `internal/app/httpx/router.go` so local Swagger UI testing remains reliable.
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+tags:
+  - name: Health
+    description: Service health checks
+  - name: Admin Users
+    description: Administrative user management
+  - name: Admin Groups
+    description: Administrative group management
+  - name: Admin Permissions
+    description: Administrative permission management
+  - name: Domains
+    description: Domain registration and review workflows
+security:
+  - bearerAuth: []
 paths:
-  /{proxy+}:
-    x-amazon-apigateway-any-method:
-      parameters:
-        - name: proxy
-          in: path
-          required: true
-          schema:
-            type: string
-
+  /actuator/health:
+    get:
+      tags:
+        - Health
+      summary: Get service health
+      operationId: getHealth
       responses:
         "200":
-          description: Success
-
-      x-amazon-apigateway-integration:
-        type: http_proxy
-        httpMethod: ANY
-        uri: "http://${nlb_dns}:8080/{proxy}"
-        connectionType: VPC_LINK
-        connectionId: "${vpc_link_id}"
-        requestParameters:
-          integration.request.path.proxy: "method.request.path.proxy"
+          description: Service health payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /api/admin/users:
+    get:
+      tags:
+        - Admin Users
+      summary: List users
+      operationId: listUsers
+      responses:
+        "200":
+          description: Users returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PortalUser"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      tags:
+        - Admin Users
+      summary: Create user
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePortalUserInput"
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalUser"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /api/admin/users/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Admin Users
+      summary: Get user
+      operationId: getUser
+      responses:
+        "200":
+          description: User returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalUser"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    put:
+      tags:
+        - Admin Users
+      summary: Update user
+      operationId: updateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePortalUserInput"
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalUser"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    delete:
+      tags:
+        - Admin Users
+      summary: Delete user
+      operationId: deleteUser
+      responses:
+        "204":
+          description: User deleted successfully
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /api/admin/groups:
+    get:
+      tags:
+        - Admin Groups
+      summary: List groups
+      operationId: listGroups
+      responses:
+        "200":
+          description: Groups returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PortalGroup"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      tags:
+        - Admin Groups
+      summary: Create group
+      operationId: createGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePortalGroupInput"
+      responses:
+        "201":
+          description: Group created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalGroup"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /api/admin/groups/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Admin Groups
+      summary: Get group
+      operationId: getGroup
+      responses:
+        "200":
+          description: Group returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalGroup"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    put:
+      tags:
+        - Admin Groups
+      summary: Update group
+      operationId: updateGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePortalGroupInput"
+      responses:
+        "200":
+          description: Group updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PortalGroup"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    delete:
+      tags:
+        - Admin Groups
+      summary: Delete group
+      operationId: deleteGroup
+      responses:
+        "204":
+          description: Group deleted successfully
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /api/admin/permissions:
+    get:
+      tags:
+        - Admin Permissions
+      summary: List permissions
+      operationId: listPermissions
+      responses:
+        "200":
+          description: Permissions returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PermissionDefinition"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      tags:
+        - Admin Permissions
+      summary: Create permission
+      operationId: createPermission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePermissionInput"
+      responses:
+        "201":
+          description: Permission created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionDefinition"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /api/admin/permissions/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Admin Permissions
+      summary: Get permission
+      operationId: getPermission
+      responses:
+        "200":
+          description: Permission returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionDefinition"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    put:
+      tags:
+        - Admin Permissions
+      summary: Update permission
+      operationId: updatePermission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePermissionInput"
+      responses:
+        "200":
+          description: Permission updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PermissionDefinition"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    delete:
+      tags:
+        - Admin Permissions
+      summary: Delete permission
+      operationId: deletePermission
+      responses:
+        "204":
+          description: Permission deleted successfully
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /api/admin/domains/workspace:
+    get:
+      tags:
+        - Domains
+      summary: Get domain workspace
+      operationId: getDomainWorkspace
+      responses:
+        "200":
+          description: Domain workspace returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DomainWorkspace"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /api/admin/domains:
+    get:
+      tags:
+        - Domains
+      summary: List domains
+      operationId: listDomains
+      responses:
+        "200":
+          description: Domains returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RegisteredDomain"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      tags:
+        - Domains
+      summary: Create domain
+      operationId: createDomain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainMutationRequest"
+      responses:
+        "201":
+          description: Domain created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisteredDomain"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /api/admin/domains/approved:
+    get:
+      tags:
+        - Domains
+      summary: List approved domains
+      operationId: listApprovedDomains
+      responses:
+        "200":
+          description: Approved domains returned successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RegisteredDomain"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /api/admin/domains/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      tags:
+        - Domains
+      summary: Get domain
+      operationId: getDomain
+      responses:
+        "200":
+          description: Domain returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisteredDomain"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    put:
+      tags:
+        - Domains
+      summary: Update domain
+      operationId: updateDomain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DomainMutationRequest"
+      responses:
+        "200":
+          description: Domain updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisteredDomain"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+    delete:
+      tags:
+        - Domains
+      summary: Delete domain
+      operationId: deleteDomain
+      responses:
+        "204":
+          description: Domain deleted successfully
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+  /api/admin/domains/{id}/decision:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      tags:
+        - Domains
+      summary: Review domain
+      operationId: reviewDomain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReviewDecisionRequest"
+      responses:
+        "200":
+          description: Domain review applied successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisteredDomain"
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/ErrorResponse"
+        "409":
+          $ref: "#/components/responses/ErrorResponse"
+        "500":
+          $ref: "#/components/responses/ErrorResponse"
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      description: API identifier exposed as a string. Backed by a numeric PostgreSQL ID in Praxis deployments.
+      schema:
+        type: string
+        example: "1"
+  responses:
+    ErrorResponse:
+      description: Error response
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+  schemas:
+    HealthResponse:
+      type: object
+      additionalProperties: true
+      properties:
+        status:
+          type: string
+          example: UP
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          example: domain not found
+    PortalUser:
+      type: object
+      required:
+        - id
+        - username
+        - role
+        - active
+        - groupIds
+      properties:
+        id:
+          type: string
+          example: "1"
+        username:
+          type: string
+          example: admin
+        email:
+          type: string
+          example: admin@praxis.local
+        displayName:
+          type: string
+          example: Portal Administrator
+        role:
+          type: string
+          example: ADMIN
+        active:
+          type: boolean
+          example: true
+        groupIds:
+          type: array
+          items:
+            type: string
+          example:
+            - "1"
+    CreatePortalUserInput:
+      type: object
+      required:
+        - username
+      properties:
+        username:
+          type: string
+          example: temp.user.local
+        password:
+          type: string
+          example: TempPassword123!
+        email:
+          type: string
+          example: temp.user.local@praxis.local
+        displayName:
+          type: string
+          example: Temp User Local
+        role:
+          type: string
+          example: USER
+        active:
+          type: boolean
+          example: true
+        groupIds:
+          type: array
+          items:
+            type: string
+          example:
+            - "2"
+    PermissionDefinition:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          example: "1"
+        name:
+          type: string
+          example: Manage Users
+        description:
+          type: string
+          example: Allows administrative management of portal users
+    CreatePermissionInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: Local Test Permission
+        description:
+          type: string
+          example: Temporary permission for local testing
+    PortalGroup:
+      type: object
+      required:
+        - id
+        - name
+        - permissionIds
+      properties:
+        id:
+          type: string
+          example: "2"
+        name:
+          type: string
+          example: Integration Analyst
+        description:
+          type: string
+          example: Group with access to integration workflows
+        permissionIds:
+          type: array
+          items:
+            type: string
+          example:
+            - "1"
+            - "8"
+    CreatePortalGroupInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: Local Test Group
+        description:
+          type: string
+          example: Temporary group for local testing
+        permissionIds:
+          type: array
+          items:
+            type: string
+          example:
+            - "1"
+    ReviewComment:
+      type: object
+      required:
+        - author
+        - decision
+        - comment
+        - createdAt
+      properties:
+        author:
+          type: string
+          example: Portal Administrator
+        authorId:
+          type: string
+          example: "1"
+        decision:
+          type: string
+          example: APPROVED
+        comment:
+          type: string
+          example: Initial domain registration approved.
+        createdAt:
+          type: string
+          format: date-time
+          example: 2026-04-21T09:00:00Z
+    RegisteredDomain:
+      type: object
+      required:
+        - id
+        - name
+        - ownerGroupId
+        - status
+        - review
+      properties:
+        id:
+          type: string
+          example: "1"
+        name:
+          type: string
+          example: Core Claims
+        description:
+          type: string
+          example: Claims processing domain
+        ownerGroupId:
+          type: string
+          example: "3"
+        status:
+          type: string
+          example: APPROVED
+        review:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReviewComment"
+        metadata:
+          type: object
+          additionalProperties: true
+          example: {}
+    DomainWorkspace:
+      type: object
+      required:
+        - ownerGroups
+        - domains
+      properties:
+        ownerGroups:
+          type: array
+          items:
+            $ref: "#/components/schemas/PortalGroup"
+        domains:
+          type: array
+          items:
+            $ref: "#/components/schemas/RegisteredDomain"
+    DomainRegistrationInput:
+      type: object
+      required:
+        - name
+        - ownerGroupId
+      properties:
+        name:
+          type: string
+          example: Local Test Domain
+        description:
+          type: string
+          example: Temporary domain for local testing
+        ownerGroupId:
+          type: string
+          example: "3"
+        metadata:
+          type: object
+          additionalProperties: true
+          example: {}
+    DomainMutationRequest:
+      type: object
+      required:
+        - mode
+        - domain
+      properties:
+        mode:
+          type: string
+          description: Use `DRAFT` to save a draft or `SUBMIT` to move into the review flow.
+          example: DRAFT
+        domain:
+          $ref: "#/components/schemas/DomainRegistrationInput"
+    ReviewDecisionRequest:
+      type: object
+      required:
+        - author
+        - decision
+        - comment
+      properties:
+        author:
+          type: string
+          example: Portal Administrator
+        authorId:
+          type: string
+          example: "1"
+        decision:
+          type: string
+          example: APPROVED
+        comment:
+          type: string
+          example: Ready to approve after review.
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

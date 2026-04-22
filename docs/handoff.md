@@ -48,20 +48,43 @@ The implementation is in place and `go test ./...` passes.
 - Groups can have many permissions
 - Each domain has one owner group
 - Domain `mode=DRAFT` maps to `DRAFT`
-- Domain `mode=SUBMIT` maps to `PENDING_REVIEW`
+- Domain `mode=SUBMIT` maps to `PENDING_APPROVAL`
 - Domain review decisions map to `APPROVED` or `REJECTED`
 - Only draft domains can be deleted
 - Only pending-review domains can be reviewed
 
-## Not Yet Verified
+## Verified Against Local Praxis Database
 
-These still need to be verified against the user's actual local PostgreSQL instance:
+The admin/domain services were verified against the user's live local PostgreSQL instance with:
+
+- host: `localhost`
+- port: `5432`
+- database: `praxis_db`
+- schema: `praxis_schema`
+- app user: `praxis_user`
+
+Verified successfully:
 
 - database connection with real local credentials
-- auto-migration execution on startup
-- live CRUD behavior for users/groups/permissions/domains
-- domain review flow against PostgreSQL
-- referential integrity behavior in real DB execution
+- live reads for users/groups/permissions/domains
+- live create/delete cycle for permissions
+- live create/delete cycle for groups
+- live create/delete cycle for users
+- live create/delete cycle for domains
+- counts returning to baseline after cleanup
+
+Observed baseline after verification:
+
+- users: `6`
+- groups: `6`
+- permissions: `9`
+- domains: `2`
+
+Still not verified in this workspace:
+
+- `DB_AUTO_MIGRATE=true` execution against a `public` schema deployment
+- end-to-end domain review workflow against a pending-approval row in Praxis data
+- authenticated actor propagation from JWT context into created-by/review attribution
 
 ## Known Blocker
 
@@ -71,26 +94,20 @@ This is an environment restriction, not a compile/test failure.
 
 ## Next Recommended Step
 
-Resume by performing real PostgreSQL verification:
+Resume by hardening the Praxis integration:
 
-1. Confirm PostgreSQL is running locally
-2. Create the target database if needed, for example `plexus_bff`
-3. Run the service with:
-   - `SPRING_PROFILES_ACTIVE=local`
-   - `DB_INTEGRATION_ENABLED=true`
-   - `DB_HOST`
-   - `DB_PORT`
-   - `DB_NAME`
-   - `DB_USER`
-   - `DB_PASSWORD`
-4. Let migrations run
-5. Exercise the new admin endpoints
-6. Fix any runtime issues found from real DB interaction
-7. Optionally add sample seed data and API examples
+1. Decide whether `admin_user.password_value` should be normalized to bcrypt for existing rows
+2. Decide whether the API contract should expose Praxis-specific fields like `permission_code`, `permission_category`, `domain_code`, and `owner_role_name`
+3. Add repository-level tests against a temporary Praxis-compatible schema
+4. Wire actor attribution from authenticated user context instead of config defaults
+5. Verify the domain review flow using a real `PENDING_APPROVAL` domain
+6. Replace manual `static/openapi.yaml` maintenance with a repeatable OpenAPI generation or synchronization workflow so Swagger UI stays aligned automatically
 
 ## Key Files
 
 - `docs/postgresql-admin-services.md`
+- `docs/praxis-schema-mapping.md`
+- `docs/runtime-verification.md`
 - `internal/app/database/postgres.go`
 - `internal/app/database/migrator.go`
 - `internal/app/database/migrations/001_admin_identity.sql`
@@ -106,4 +123,4 @@ Resume by performing real PostgreSQL verification:
 
 Use:
 
-`Continue from docs/handoff.md. Verify the PostgreSQL-backed admin user/group/permission/domain services against my local Postgres and finish the remaining runtime validation.`
+`Continue from docs/handoff.md and docs/praxis-schema-mapping.md. Harden the Praxis PostgreSQL integration and close the remaining mapping and audit gaps.`

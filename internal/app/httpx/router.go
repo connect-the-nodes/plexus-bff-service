@@ -36,9 +36,10 @@ func NewRouter(
 		_ = json.NewEncoder(w).Encode(payload)
 	})
 	mux.HandleFunc("/swagger-ui.html", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "static/openapi.yaml")
+		http.ServeFile(w, r, "static/swagger-ui.html")
 	})
 	mux.HandleFunc("/v3/api-docs", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/yaml")
 		http.ServeFile(w, r, "static/openapi.yaml")
 	})
 	mux.HandleFunc("/auth/login", authController.Login)

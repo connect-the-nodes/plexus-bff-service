@@ -13,19 +13,19 @@ import (
 )
 
 type Config struct {
-	Server        ServerConfig        `yaml:"server"`
-	Spring        SpringConfig        `yaml:"spring"`
-	Management    ManagementConfig    `yaml:"management"`
-	Security      SecurityConfig      `yaml:"security"`
-	SpringDoc     SpringDocConfig     `yaml:"springdoc"`
-	Logging       LoggingConfig       `yaml:"logging"`
-	Features      FeaturesConfig      `yaml:"features"`
-	AWS           AWSConfig           `yaml:"aws"`
+	Server         ServerConfig         `yaml:"server"`
+	Spring         SpringConfig         `yaml:"spring"`
+	Management     ManagementConfig     `yaml:"management"`
+	Security       SecurityConfig       `yaml:"security"`
+	SpringDoc      SpringDocConfig      `yaml:"springdoc"`
+	Logging        LoggingConfig        `yaml:"logging"`
+	Features       FeaturesConfig       `yaml:"features"`
+	AWS            AWSConfig            `yaml:"aws"`
 	PropertyLogger PropertyLoggerConfig `yaml:"property-logger"`
-	Auth          AuthConfig          `yaml:"auth"`
-	Observability ObservabilityConfig `yaml:"observability"`
-	Database      DatabaseConfig      `yaml:"database"`
-	activeProfile string
+	Auth           AuthConfig           `yaml:"auth"`
+	Observability  ObservabilityConfig  `yaml:"observability"`
+	Database       DatabaseConfig       `yaml:"database"`
+	activeProfile  string
 }
 
 type ServerConfig struct {
@@ -88,14 +88,14 @@ type DataConfig struct {
 }
 
 type RedisDataConfig struct {
-	Host               string          `yaml:"host"`
-	Port               int             `yaml:"port"`
-	SSL                RedisSSLConfig  `yaml:"ssl"`
-	IAM                RedisIAMConfig  `yaml:"iam"`
-	FailFast           bool            `yaml:"fail-fast"`
-	UserID             string          `yaml:"userId"`
-	ReplicationGroupID string          `yaml:"replicationGroupId"`
-	Region             string          `yaml:"region"`
+	Host               string         `yaml:"host"`
+	Port               int            `yaml:"port"`
+	SSL                RedisSSLConfig `yaml:"ssl"`
+	IAM                RedisIAMConfig `yaml:"iam"`
+	FailFast           bool           `yaml:"fail-fast"`
+	UserID             string         `yaml:"userId"`
+	ReplicationGroupID string         `yaml:"replicationGroupId"`
+	Region             string         `yaml:"region"`
 }
 
 type RedisSSLConfig struct {
@@ -119,15 +119,15 @@ type ToggleConfig struct {
 }
 
 type SecurityConfig struct {
-	Enabled bool            `yaml:"enabled"`
+	Enabled bool              `yaml:"enabled"`
 	JWT     SecurityJWTConfig `yaml:"jwt"`
 }
 
 type SecurityJWTConfig struct {
-	JWKSetURI      string `yaml:"jwk-set-uri"`
-	IssuerURI      string `yaml:"issuer-uri"`
+	JWKSetURI        string `yaml:"jwk-set-uri"`
+	IssuerURI        string `yaml:"issuer-uri"`
 	AuthoritiesClaim string `yaml:"authorities-claim"`
-	RolePrefix     string `yaml:"role-prefix"`
+	RolePrefix       string `yaml:"role-prefix"`
 }
 
 type SpringDocConfig struct {
@@ -145,8 +145,8 @@ type LoggingConfig struct {
 }
 
 type FeaturesConfig struct {
-	File    string                `yaml:"file"`
-	Session FeatureSessionConfig  `yaml:"session"`
+	File    string               `yaml:"file"`
+	Session FeatureSessionConfig `yaml:"session"`
 }
 
 type FeatureSessionConfig struct {
@@ -194,9 +194,13 @@ type ObservabilityServiceConfig struct {
 }
 
 type DatabaseConfig struct {
-	IntegrationEnabled bool               `yaml:"integration-enabled"`
-	AutoMigrate        bool               `yaml:"auto-migrate"`
-	Postgres           PostgresDBConfig   `yaml:"postgres"`
+	IntegrationEnabled bool             `yaml:"integration-enabled"`
+	AutoMigrate        bool             `yaml:"auto-migrate"`
+	Schema             string           `yaml:"schema"`
+	CustomerAccountID  int64            `yaml:"customer-account-id"`
+	DefaultActorID     int64            `yaml:"default-actor-id"`
+	DefaultActorName   string           `yaml:"default-actor-name"`
+	Postgres           PostgresDBConfig `yaml:"postgres"`
 }
 
 type PostgresDBConfig struct {
@@ -288,6 +292,15 @@ func Load(configDir string) (*Config, error) {
 	}
 	if cfg.Database.Postgres.MaxConnLifetime == 0 {
 		cfg.Database.Postgres.MaxConnLifetime = 30
+	}
+	if cfg.Database.Schema == "" {
+		cfg.Database.Schema = "public"
+	}
+	if cfg.Database.CustomerAccountID == 0 {
+		cfg.Database.CustomerAccountID = 1
+	}
+	if cfg.Database.DefaultActorName == "" {
+		cfg.Database.DefaultActorName = "System"
 	}
 	return cfg, nil
 }

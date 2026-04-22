@@ -78,6 +78,10 @@ observability:
 database:
   integration-enabled: ${DB_INTEGRATION_ENABLED:false}
   auto-migrate: ${DB_AUTO_MIGRATE:true}
+  schema: ${DB_SCHEMA:public}
+  customer-account-id: ${DB_CUSTOMER_ACCOUNT_ID:1}
+  default-actor-id: ${DB_DEFAULT_ACTOR_ID:0}
+  default-actor-name: ${DB_DEFAULT_ACTOR_NAME:System}
   postgres:
     host: ${DB_HOST:localhost}
     port: ${DB_PORT:5432}
