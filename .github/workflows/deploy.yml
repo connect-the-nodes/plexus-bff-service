@@ -1,86 +1,66 @@
-name: Build and Push Plexus Hub Image
+name: Build and publish Plexus Hub image
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
     inputs:
       environment:
-        description: "Target environment"
+        description: Target environment
         required: true
-        default: "dev"
+        default: dev
         type: choice
-        options: [dev, staging, prod]
-      image_tag:
-        description: "Optional image tag override (defaults to commit SHA)"
+        options: [dev, test, staging, prod]
+      release_tag:
+        description: Optional immutable SemVer tag, for example v1.2.3
         required: false
         default: ""
+        type: string
 
 permissions:
-  id-token: write
   contents: read
 
+concurrency:
+  group: plexus-hub-publish-${{ inputs.environment || 'dev' }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  build:
+  test:
+    name: Test application
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
-
-      - name: Resolve target environment and tag
-        shell: bash
-        run: |
-          TARGET_ENV="dev"
-          IMAGE_TAG="${{ github.sha }}"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TARGET_ENV="${{ inputs.environment }}"
-            if [ -n "${{ inputs.image_tag }}" ]; then
-              IMAGE_TAG="${{ inputs.image_tag }}"
-            fi
-          fi
-          echo "TARGET_ENV=$TARGET_ENV" >> "$GITHUB_ENV"
-          echo "IMAGE_TAG=$IMAGE_TAG" >> "$GITHUB_ENV"
-          echo "ECR_REPO_NAME=plexus-hub-$TARGET_ENV" >> "$GITHUB_ENV"
-
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          persist-credentials: false
 
-      - name: Verify target AWS account
-        run: |
-          if [ -z "${{ secrets.AWS_ACCOUNT_ID }}" ]; then
-            echo "Missing AWS_ACCOUNT_ID secret."
-            exit 1
-          fi
-          ACTUAL_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          if [ "$ACTUAL_ACCOUNT_ID" != "${{ secrets.AWS_ACCOUNT_ID }}" ]; then
-            echo "Configured role is using AWS account $ACTUAL_ACCOUNT_ID, expected ${{ secrets.AWS_ACCOUNT_ID }}."
-            exit 1
-          fi
+      - name: Set up Java
+        uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
 
-      - name: Ensure ECR repository exists
-        run: |
-          aws ecr create-repository --repository-name "$ECR_REPO_NAME" >/dev/null 2>&1 || true
+      - name: Run tests
+        run: ./mvnw --batch-mode --no-transfer-progress verify
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build and Push Docker Image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPO_NAME:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPO_NAME:$IMAGE_TAG
-
-          docker tag $ECR_REGISTRY/$ECR_REPO_NAME:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPO_NAME:latest
-          docker push $ECR_REGISTRY/$ECR_REPO_NAME:latest
-
-      - name: Verify ECR Image Tag Exists
-        run: |
-          aws ecr describe-images \
-            --repository-name "$ECR_REPO_NAME" \
-            --image-ids imageTag="$IMAGE_TAG" \
-            --region "${{ secrets.AWS_REGION }}"
+  publish:
+    name: Publish immutable ECR image
+    needs: test
+    permissions:
+      contents: read
+      id-token: write # Required by the reusable AWS OIDC workflow.
+      attestations: write # Required by the reusable provenance workflow.
+    uses: connect-the-nodes/zynchub-reusable-workflows/.github/workflows/build-publish-container-aws-ecr.yml@cb94678cac2e6456d272f9d6b87bca727165ec2d # v1.0.3
+    with:
+      environment: ${{ inputs.environment || 'dev' }}
+      aws_region: ${{ vars.AWS_REGION || 'eu-west-1' }}
+      ecr_repository: plexus-hub-${{ inputs.environment || 'dev' }}
+      context: .
+      dockerfile: dockerfile
+      release_tag: ${{ inputs.release_tag || '' }}
+    secrets:
+      AWS_ROLE_ARN: ${{ secrets.AWS_DEPLOYMENT_ROLE || secrets.AWS_ROLE_ARN }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
